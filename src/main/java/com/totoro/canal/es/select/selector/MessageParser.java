@@ -56,7 +56,7 @@ public class MessageParser {
         List<EventData> eventDatas = new ArrayList<EventData>();
         List<Entry> transactionDataBuffer = new ArrayList<Entry>();
 
-        long now = new Date().getTime();
+        long now =System.currentTimeMillis();
         try {
             for (Entry entry : datas) {
                 switch (entry.getEntryType()) {

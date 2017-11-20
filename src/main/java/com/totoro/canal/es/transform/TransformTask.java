@@ -1,8 +1,7 @@
 package com.totoro.canal.es.transform;
 
 /**
- * 标题、简要说明. <br>
- * 类详细说明.
+ *
  * <p>
  * Copyright: Copyright (c)
  * <p>

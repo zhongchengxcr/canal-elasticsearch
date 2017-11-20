@@ -7,15 +7,18 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import com.totoro.canal.es.select.selector.canal.CanalEmbedSelector;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
- * 标题、简要说明. <br>
- * 类详细说明.
  * <p>
  * Copyright: Copyright (c)
  * <p>
@@ -29,27 +32,26 @@ public class TotoroLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(TotoroLauncher.class);
 
-    public static void main(String[] args) throws InterruptedException {
+    private static String path = TotoroLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+    private static final String CLASSPATH_URL_PREFIX = "classpath:";
+
+    public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
         setGlobalUncaughtExceptionHandler();
-
-        String destination = "totoro";
-        String ip = AddressUtils.getHostIp();
-        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
-                destination,
-                "",
-                "");
-
-        TotoroSelector ts = new CanalEmbedSelector(connector, destination);
-        ts.start();
-        while (true) {
-            try {
-                Message message = ts.selector();
-                printEntry(message.getEntries());
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                break;
-            }
+        String conf = System.getProperty("canal-es.properties", "classpath:canal-es.properties");
+        Properties properties = new Properties();
+        if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
+            conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
+            System.out.println(conf);
+            properties.load(TotoroLauncher.class.getClassLoader().getResourceAsStream(conf));
+        } else {
+            properties.load(new FileInputStream(conf));
         }
+
+        CanalScheduler canalScheduler = new CanalScheduler(properties);
+
+        canalScheduler.start();
+
 
     }
 
