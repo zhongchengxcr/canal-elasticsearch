@@ -31,13 +31,8 @@ public class TransFormTask extends AbstractTotoroLifeCycle {
     public TransFormTask(TotoroChannel channel) {
         this.channel = channel;
         transFormExecutor = new TransFormExecutor();
-
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("trans-pool-%d").build();
-
-        executorService = new ThreadPoolExecutor(1, 1,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), threadFactory);
-
+        executorService = Executors.newSingleThreadExecutor(threadFactory);
     }
 
     @Override

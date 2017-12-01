@@ -3,7 +3,10 @@ package com.totoro.canal.es.transform;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * 说明 . <br>
@@ -19,21 +22,12 @@ import java.util.concurrent.*;
  */
 public class TransFormExecutor {
 
-    private ThreadPoolExecutor threadPoolExecutor;
-
+    private ExecutorService threadPoolExecutor;
 
     public TransFormExecutor() {
-
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("trans-pool-%d").build();
-
-        threadPoolExecutor = new ThreadPoolExecutor(10
-                , 10
-                , 0L
-                , TimeUnit.SECONDS
-                , new LinkedBlockingQueue<>(50)
-                , threadFactory);
+        threadPoolExecutor = Executors.newFixedThreadPool(10, threadFactory);
     }
-
 
     public Future<ElasticsearchMetadata> submit(TotoroTransForm transForm) {
         return threadPoolExecutor.submit(transForm);

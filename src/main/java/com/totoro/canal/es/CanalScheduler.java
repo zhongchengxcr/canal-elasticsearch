@@ -49,8 +49,11 @@ public class CanalScheduler {
         //主线程所在
         running = true;
         totoroSelector.start();
-        elasticSearchLoadTask.start();
+        totoroSelector.rollback();
+
+
         transFormTask.start();
+        elasticSearchLoadTask.start();
 
         while (running) {
 
@@ -65,16 +68,12 @@ public class CanalScheduler {
                 channel.putMessage(message);
                 totoroSelector.ack(batchId); // 提交确认
             }
-
         }
-
     }
 
     public void stop() {
-
         totoroSelector.stop();
         elasticSearchLoadTask.stop();
-
     }
 
 
