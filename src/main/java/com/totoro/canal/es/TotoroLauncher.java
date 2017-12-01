@@ -1,19 +1,12 @@
 package com.totoro.canal.es;
 
-import com.alibaba.otter.canal.client.CanalConnector;
-import com.alibaba.otter.canal.client.CanalConnectors;
-import com.alibaba.otter.canal.common.utils.AddressUtils;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.protocol.Message;
-import com.totoro.canal.es.select.selector.TotoroSelector;
-import com.totoro.canal.es.select.selector.canal.CanalEmbedSelector;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -37,9 +30,33 @@ public class TotoroLauncher {
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
 
     public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
+
         setGlobalUncaughtExceptionHandler();
+
         String conf = System.getProperty("canal-es.properties", "classpath:canal-es.properties");
+
+        Properties properties = getProperties(conf);
+
+        CanalScheduler canalScheduler = new CanalScheduler(properties);
+
+        canalScheduler.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                logger.info("## stop the totoro server");
+                canalScheduler.stop();
+            } catch (Throwable e) {
+                logger.warn("##something goes wrong when stopping totoro Server:", e);
+            } finally {
+                logger.info("## totoro server is down.");
+            }
+        }));
+
+    }
+
+    private static Properties getProperties(String conf) throws IOException {
         Properties properties = new Properties();
+
         if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
             conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
             System.out.println(conf);
@@ -47,12 +64,7 @@ public class TotoroLauncher {
         } else {
             properties.load(new FileInputStream(conf));
         }
-
-        CanalScheduler canalScheduler = new CanalScheduler(properties);
-
-        canalScheduler.start();
-
-
+        return properties;
     }
 
 
