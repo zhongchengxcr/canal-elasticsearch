@@ -21,7 +21,6 @@ public class TotoroChannel {
 
     private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(50);
 
-
     public void putMessage(Message e) throws InterruptedException {
         selectorMessageQueue.put(e);
     }

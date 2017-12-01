@@ -2,7 +2,6 @@ package com.totoro.canal.es.transform;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
-import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
 
 import java.util.concurrent.Callable;
@@ -21,23 +20,20 @@ import java.util.concurrent.Callable;
  */
 public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata>, Callable<ElasticsearchMetadata> {
 
-    private TotoroChannel channel;
+    private Message message;
 
-    public TotoroTransForm(TotoroChannel channel) {
-        this.channel = channel;
+    public TotoroTransForm(Message message) {
+        this.message = message;
     }
 
     @Override
     public ElasticsearchMetadata call() throws Exception {
-        Message message = channel.takeMessage();
         return trans(message);
     }
-
 
     @Override
     public ElasticsearchMetadata trans(Message input) {
         System.out.println(Thread.currentThread().getName() + "处理消息id ：" + input.getId());
-
         long sum = input.getEntries().stream().filter((s) -> s.getEntryType().equals(CanalEntry.EntryType.ROWDATA)).count();
         return new ElasticsearchMetadata().setId(String.valueOf(sum));
     }

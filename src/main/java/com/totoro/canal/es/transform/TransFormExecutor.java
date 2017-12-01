@@ -38,4 +38,8 @@ public class TransFormExecutor {
     public Future<ElasticsearchMetadata> submit(TotoroTransForm transForm) {
         return threadPoolExecutor.submit(transForm);
     }
+
+    public void shutDown() {
+        threadPoolExecutor.shutdownNow();
+    }
 }

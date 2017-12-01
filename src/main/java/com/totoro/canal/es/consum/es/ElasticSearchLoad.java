@@ -6,7 +6,6 @@ import com.totoro.canal.es.model.es.ElasticsearchMetadata;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 说明 . <br>
@@ -37,10 +36,9 @@ public class ElasticSearchLoad extends AbstractTotoroLifeCycle implements Runnab
         while (running) {
 
             try {
-                Future<ElasticsearchMetadata> future;
-                future = channel.takeFuture();
-
+                Future<ElasticsearchMetadata> future = channel.takeFuture();
                 ElasticsearchMetadata elasticsearchMetadata = future.get();
+                System.out.println("future 来了");
 
                 if (elasticsearchMetadata != null) {
                     sum += Integer.valueOf(elasticsearchMetadata.getId());

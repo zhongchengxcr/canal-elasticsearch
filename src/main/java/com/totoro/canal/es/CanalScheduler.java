@@ -5,6 +5,7 @@ import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.consum.es.ElasticSearchLoadTask;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import com.totoro.canal.es.select.selector.canal.CanalEmbedSelector;
+import com.totoro.canal.es.transform.TransFormTask;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -33,12 +34,15 @@ public class CanalScheduler {
 
     private ElasticSearchLoadTask elasticSearchLoadTask;
 
+    private TransFormTask transFormTask;
+
 
     public CanalScheduler(final Properties conf) {
         this.conf = conf;
         channel = new TotoroChannel();
         totoroSelector = new CanalEmbedSelector();
         elasticSearchLoadTask = new ElasticSearchLoadTask(channel);
+        transFormTask = new TransFormTask(channel);
     }
 
     public void start() throws InterruptedException, ExecutionException {
@@ -46,6 +50,7 @@ public class CanalScheduler {
         running = true;
         totoroSelector.start();
         elasticSearchLoadTask.start();
+        transFormTask.start();
 
         while (running) {
 
@@ -54,10 +59,9 @@ public class CanalScheduler {
             long batchId = message.getId();
             int size = message.getEntries().size();
             if (batchId == -1 || size == 0) {
-
                 System.out.println("空数据");
-
             } else {
+                System.out.println("放入数据");
                 channel.putMessage(message);
                 totoroSelector.ack(batchId); // 提交确认
             }
@@ -67,6 +71,9 @@ public class CanalScheduler {
     }
 
     public void stop() {
+
+        totoroSelector.stop();
+        elasticSearchLoadTask.stop();
 
     }
 

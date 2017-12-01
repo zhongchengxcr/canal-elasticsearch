@@ -46,6 +46,7 @@ public class ElasticSearchLoadTask extends AbstractTotoroLifeCycle {
     public void stop() {
         super.stop();
         elasticSearchLoad.stop();
+        executorService.shutdown();
 
     }
 }
