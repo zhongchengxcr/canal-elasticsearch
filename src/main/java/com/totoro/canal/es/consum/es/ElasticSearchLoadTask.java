@@ -34,8 +34,6 @@ public class ElasticSearchLoadTask extends AbstractTotoroLifeCycle {
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
 
-        executorService = Executors.newSingleThreadExecutor();
-
     }
 
     @Override
