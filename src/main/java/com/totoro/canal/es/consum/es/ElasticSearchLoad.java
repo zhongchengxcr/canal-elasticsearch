@@ -1,6 +1,7 @@
 package com.totoro.canal.es.consum.es;
 
 import com.totoro.canal.es.channel.TotoroChannel;
+import com.totoro.canal.es.common.AbstractTotoroLifeCycle;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
 
 import java.util.concurrent.ExecutionException;
@@ -19,13 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author zhongcheng_m@yeah.net
  * @version 1.0.0
  */
-public class ElasticSearchLoad implements Runnable {
+public class ElasticSearchLoad extends AbstractTotoroLifeCycle implements Runnable {
 
-    private volatile boolean running = false;
 
     private TotoroChannel channel;
-
-    private AtomicInteger atomicInteger = new AtomicInteger();
 
     private int sum = 0;
 
@@ -33,39 +31,36 @@ public class ElasticSearchLoad implements Runnable {
         this.channel = channel;
     }
 
-
-    public void start() throws InterruptedException, ExecutionException {
-        running = true;
-
+    @Override
+    public void start() {
+        super.start();
         while (running) {
-            Future<ElasticsearchMetadata> future = null;
-            future = channel.takeFuture();
 
+            try {
+                Future<ElasticsearchMetadata> future;
+                future = channel.takeFuture();
 
-            ElasticsearchMetadata elasticsearchMetadata = future.get();
+                ElasticsearchMetadata elasticsearchMetadata = future.get();
 
-            if (elasticsearchMetadata != null) {
-                sum += Integer.valueOf(elasticsearchMetadata.getId());
-                System.out.println("消费数据" + sum);
-            } else {
-                System.out.println("数据为空");
+                if (elasticsearchMetadata != null) {
+                    sum += Integer.valueOf(elasticsearchMetadata.getId());
+                    System.out.println("消费数据" + sum);
+                } else {
+                    System.out.println("数据为空");
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
         }
     }
 
-
+    @Override
     public void stop() {
-        running = false;
+        super.stop();
     }
 
     @Override
     public void run() {
-        try {
-            start();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        start();
     }
 }

@@ -28,6 +28,14 @@
             <artifactId>canal.client</artifactId>
             <version>1.0.24</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus</artifactId>
+            <version>2.1.6</version>
+        </dependency>
+
+
     </dependencies>
 
 
