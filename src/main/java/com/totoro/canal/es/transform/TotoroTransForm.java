@@ -38,14 +38,7 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
     public ElasticsearchMetadata trans(Message input) {
         System.out.println(Thread.currentThread().getName() + "处理消息id ：" + input.getId());
 
-        long sum = input.getEntries().stream().filter((s) -> {
-
-            if (s.getEntryType().equals(CanalEntry.EntryType.ROWDATA)) {
-                return true;
-            } else {
-                return false;
-            }
-        }).count();
+        long sum = input.getEntries().stream().filter((s) -> s.getEntryType().equals(CanalEntry.EntryType.ROWDATA)).count();
         return new ElasticsearchMetadata().setId(String.valueOf(sum));
     }
 }
