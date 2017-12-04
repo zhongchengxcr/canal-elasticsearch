@@ -38,7 +38,6 @@ public class TotoroLauncher {
         Properties properties = getProperties(conf);
 
         CanalScheduler canalScheduler = new CanalScheduler(properties);
-
         canalScheduler.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

@@ -19,46 +19,19 @@ import java.util.concurrent.Future;
  * @author zhongcheng_m@yeah.net
  * @version 1.0.0
  */
-public class ElasticSearchLoad extends AbstractTotoroLifeCycle implements Runnable {
+public class ElasticSearchLoad implements Consumer<ElasticsearchMetadata> {
 
 
-    private TotoroChannel channel;
+    private ElasticsearchService elasticsearchService;
 
-    private int sum = 0;
-
-    public ElasticSearchLoad(TotoroChannel channel) {
-        this.channel = channel;
+    public ElasticSearchLoad(ElasticsearchService elasticsearchService) {
+        this.elasticsearchService = elasticsearchService;
     }
 
-    @Override
-    public void start() {
-        super.start();
-        while (running) {
-
-            try {
-                Future<ElasticsearchMetadata> future = channel.takeFuture();
-                ElasticsearchMetadata elasticsearchMetadata = future.get();
-                System.out.println("future 来了");
-
-                if (elasticsearchMetadata != null) {
-                    sum += Integer.valueOf(elasticsearchMetadata.getId());
-                    System.out.println("消费数据" + sum);
-                } else {
-                    System.out.println("数据为空");
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     @Override
-    public void stop() {
-        super.stop();
-    }
-
-    @Override
-    public void run() {
-        start();
+    public void consume(ElasticsearchMetadata object) {
+        //elasticsearchService.deleteById();
+        System.out.println("consum......");
     }
 }
