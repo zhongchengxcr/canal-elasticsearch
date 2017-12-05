@@ -1,11 +1,6 @@
 package com.totoro.canal.es.consum.es;
 
-import com.totoro.canal.es.channel.TotoroChannel;
-import com.totoro.canal.es.common.AbstractTotoroLifeCycle;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * 说明 . <br>
@@ -32,6 +27,5 @@ public class ElasticSearchLoad implements Consumer<ElasticsearchMetadata> {
     @Override
     public void consume(ElasticsearchMetadata object) {
         //elasticsearchService.deleteById();
-        System.out.println("consum......");
     }
 }

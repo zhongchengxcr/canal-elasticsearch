@@ -1,9 +1,10 @@
 package com.totoro.canal.es.transform;
 
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.totoro.canal.es.channel.TotoroChannel;
-import com.totoro.canal.es.common.AbstractTotoroLifeCycle;
+import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.common.task.GlobalTask;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
 
@@ -25,12 +26,19 @@ public class TransFormTask extends GlobalTask {
 
     private TotoroChannel channel;
 
+    private BooleanMutex booleanMutex = RollBackMonitorFactory.getBooleanMutex();
+
     public TransFormTask(TotoroChannel channel) {
+
+        logger.info("TransFormTask init .......");
+
         this.channel = channel;
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setNameFormat("trans-pool-%d")
                 .build();
         executorService = Executors.newFixedThreadPool(10, threadFactory);
+
+        logger.info("TransFormTask init complete.......");
     }
 
 
@@ -39,8 +47,14 @@ public class TransFormTask extends GlobalTask {
         running = true;
         while (running) {
             try {
+                booleanMutex.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                break;
+            }
+            try {
                 Message message = channel.takeMessage();
-                System.out.println("数据来了 ：" + message);
+                logger.info("数据来了 ：" + message.getId());
                 TotoroTransForm transForm = new TotoroTransForm(message);
                 Future<ElasticsearchMetadata> future = executorService.submit(transForm);
                 channel.putFuture(future);

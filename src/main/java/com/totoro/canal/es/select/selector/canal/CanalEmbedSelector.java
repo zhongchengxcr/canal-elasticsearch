@@ -3,12 +3,19 @@ package com.totoro.canal.es.select.selector.canal;
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
 import com.alibaba.otter.canal.common.utils.AddressUtils;
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.totoro.canal.es.common.RollBackMonitorFactory;
+import com.totoro.canal.es.common.TotoroException;
+import com.totoro.canal.es.select.selector.CanalConf;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.net.util.IPAddressUtil;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +33,6 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class CanalEmbedSelector implements TotoroSelector {
 
-
     private static final Logger logger = LoggerFactory.getLogger(CanalEmbedSelector.class);
 
     private volatile boolean running = false;
@@ -35,27 +41,56 @@ public class CanalEmbedSelector implements TotoroSelector {
 
     private String destination;
 
-    private volatile long lastEntryTime = 0;
-
     private static final int maxEmptyTimes = 10;
 
     private int batchSize = 5 * 1024;
 
-    private String FILTER_PATTEN = ".*\\..*";
+    private String filterPatten;
 
     private long batchTimeout = -1L;
 
-    public CanalEmbedSelector() {
-        String ip = AddressUtils.getHostIp();
-        connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
-                "totoro",
-                "",
-                "");
+    private Mode mode;
+
+    private BooleanMutex rollBack = RollBackMonitorFactory.getBooleanMutex();
+
+    public enum Mode {
+        SIGN, CLUSTER
     }
 
-    /**
-     */
-    protected Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("parse events has an error", e);
+    public CanalEmbedSelector(CanalConf conf) {
+
+        logger.info("TotoroSelector init , conf :{}", conf.toString());
+
+        this.mode = conf.getMode();
+        this.destination = conf.getDestination();
+        this.filterPatten = conf.getFilterPatten();
+        String userName = conf.getUserName();
+        String passWord = conf.getPassWord();
+
+        if (Mode.SIGN.equals(mode)) {
+            String address = conf.getAddress();
+
+            String[] hostPort = address.split(":");
+
+            String ip = hostPort[0];
+            Integer port = Integer.valueOf(hostPort[1]);
+
+            SocketAddress socketAddress = new InetSocketAddress(ip, port);
+
+            connector = CanalConnectors.newSingleConnector(socketAddress,
+                    destination,
+                    userName,
+                    passWord);
+
+        } else if (Mode.CLUSTER.equals(mode)) {
+            String zkAddress = conf.getZkAddress();
+            connector = CanalConnectors.newClusterConnector(zkAddress, destination, userName, passWord);
+        } else {
+            throw new TotoroException("Invalid mode");
+        }
+
+    }
+
 
     @Override
     public void start() {
@@ -63,7 +98,7 @@ public class CanalEmbedSelector implements TotoroSelector {
             return;
         }
         connector.connect();
-        connector.subscribe();
+        connector.subscribe(filterPatten);
         running = true;
     }
 
@@ -86,12 +121,17 @@ public class CanalEmbedSelector implements TotoroSelector {
         Message message = null;
         int emptyTimes = 0;
 
-        if (batchTimeout < 0) {//
+        if (batchTimeout < 0) {
             while (running) {
                 message = connector.getWithoutAck(batchSize);
-                //System.out.println("=========" + message);
+
                 if (message == null || message.getId() == -1L) {
-                    applyWait(emptyTimes++);
+                    if (rollBack.state()==false ) {
+                        break;
+                    } else {
+                        applyWait(emptyTimes++);
+                    }
+
                 } else {
                     break;
                 }
@@ -145,10 +185,9 @@ public class CanalEmbedSelector implements TotoroSelector {
 
     private void applyWait(int emptyTimes) throws InterruptedException {
         int newEmptyTimes = emptyTimes > maxEmptyTimes ? maxEmptyTimes : emptyTimes;
-        //Thread.sleep(1000);
-        if (emptyTimes <= 3) {
+        if (emptyTimes >= 3) {
             Thread.yield();
-            LockSupport.parkNanos(1000 * 1000L  * newEmptyTimes);
+            LockSupport.parkNanos(10000 * 1000L * newEmptyTimes);
         }
     }
 

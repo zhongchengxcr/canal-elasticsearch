@@ -1,5 +1,7 @@
 package com.totoro.canal.es.model.es;
 
+import com.totoro.canal.es.common.Message;
+
 import java.util.Map;
 
 /**
@@ -15,6 +17,7 @@ import java.util.Map;
  * @version 1.0.0
  */
 public class ElasticsearchMetadata {
+    protected Long batchId;
 
     private String index;
 
@@ -68,6 +71,15 @@ public class ElasticsearchMetadata {
 
     public ElasticsearchMetadata setIdDataMap(Map<String, Map<String, Object>> idDataMap) {
         this.idDataMap = idDataMap;
+        return this;
+    }
+
+    public Long getBatchId() {
+        return batchId;
+    }
+
+    public ElasticsearchMetadata setBatchId(Long batchId) {
+        this.batchId = batchId;
         return this;
     }
 }

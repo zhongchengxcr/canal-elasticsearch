@@ -1,8 +1,13 @@
 package com.totoro.canal.es.select.selector;
 
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
+import com.totoro.canal.es.CanalScheduler;
 import com.totoro.canal.es.channel.TotoroChannel;
+import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.common.task.GlobalTask;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 说明 . <br>
@@ -18,34 +23,80 @@ import com.totoro.canal.es.common.task.GlobalTask;
  */
 public class SelectorTask extends GlobalTask {
 
+
     private TotoroSelector totoroSelector;
 
     private TotoroChannel channel;
 
-    public SelectorTask(TotoroSelector totoroSelector, TotoroChannel channel) {
+    private BooleanMutex rollBack = RollBackMonitorFactory.getBooleanMutex();
+
+
+    /**
+     * 是否耦合度过高？？
+     */
+
+    public SelectorTask(TotoroSelector totoroSelector, TotoroChannel channel, CanalScheduler canalScheduler) {
+        logger.info("Selector task init .......");
         this.totoroSelector = totoroSelector;
         this.channel = channel;
+        logger.info("Selector task complete .......");
     }
+
 
     @Override
     public void run() {
         running = true;
+
         totoroSelector.start();
         totoroSelector.rollback();
+
+        logger.info("Selector task start .......");
+        Message message;
+        rollBack.set(true);
         while (running) {
-            Message message;
             try {
+                //出现回滚立即停止
                 message = totoroSelector.selector();
+
+
+                /**
+                 * 当前处理回滚的调度模型，可以保证在消费端出错的时候、正确处理回滚，并正确应答和继续消费数据。
+                 *
+                 * 当发生回滚时，首先 consumer task 会将 rollback 设置为true ,自己停止工作，等待唤醒
+                 * 然后 trans task 也会同样挂起
+                 * channel会拒绝接受 message 和 future ,对于已经提交的 future 会尝试取消
+                 *
+                 * 到此 除了 selector task 以外  的所有线程 全部尽最大努力去停止处理消息，但注意此时还没有回滚
+                 *
+                 * 因为 selector 是循环获取数据，每次循环都会判断 rollback 状态，一旦发现rollback状态，跳出循环
+                 * 返回到 selector task里面 ，task会感知到回滚状态 ，清空渠道中的消息 ，并回滚 至最后一个未应答的
+                 * 消费点，然后丢弃本条消息，重新获取一次消息（回滚的消息）
+                 * 当上面所有工作 都做完了，便完成了回滚 ，selector task 改变回滚状态，重新正常工作
+                 *
+                 * 粗略测试结果 ： 40000条数据，单机测试，当 batchId 能被2整除的时候回滚
+                 *  在不真正消费数据的前提下（消费端直接应答），处理性能非常好
+                 *
+                 */
+                if (rollBack.state() == false) {
+                    totoroSelector.rollback();
+                    logger.info("发生回滚了========================= 丢弃：" + message.getId());
+                    //Thread.sleep(50);
+                    //丢弃刚才的消息
+                    message = totoroSelector.selector();
+                    channel.clearMessage();
+                    rollBack.set(true);
+                }
+
                 long batchId = message.getId();
                 int size = message.getEntries().size();
                 if (batchId == -1 || size == 0) {
-                    System.out.println("空数据");
+                    logger.info("空数据");
                 } else {
-                    System.out.println("放入数据");
+                    logger.info("放入数据");
                     channel.putMessage(message);
-                    totoroSelector.ack(batchId); // 提交确认
                 }
             } catch (InterruptedException e) {
+                logger.info("Selector task has been interrupted .......");
                 e.printStackTrace();
             }
         }

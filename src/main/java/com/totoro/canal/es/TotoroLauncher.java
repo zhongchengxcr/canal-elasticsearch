@@ -25,8 +25,6 @@ public class TotoroLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(TotoroLauncher.class);
 
-    private static String path = TotoroLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-
     private static final String CLASSPATH_URL_PREFIX = "classpath:";
 
     public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
@@ -58,7 +56,7 @@ public class TotoroLauncher {
 
         if (conf.startsWith(CLASSPATH_URL_PREFIX)) {
             conf = StringUtils.substringAfter(conf, CLASSPATH_URL_PREFIX);
-            System.out.println(conf);
+            logger.info(conf);
             properties.load(TotoroLauncher.class.getClassLoader().getResourceAsStream(conf));
         } else {
             properties.load(new FileInputStream(conf));
@@ -99,9 +97,9 @@ public class TotoroLauncher {
                 } else if (eventType == CanalEntry.EventType.INSERT) {
                     printColumn(rowData.getAfterColumnsList());
                 } else {
-                    System.out.println("------->; before");
+                    logger.info("------->; before");
                     printColumn(rowData.getBeforeColumnsList());
-                    System.out.println("------->; after");
+                    logger.info("------->; after");
                     printColumn(rowData.getAfterColumnsList());
                 }
             }

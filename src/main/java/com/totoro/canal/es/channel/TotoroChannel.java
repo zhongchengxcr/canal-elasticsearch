@@ -1,7 +1,13 @@
 package com.totoro.canal.es.channel;
 
+import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
+import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.select.selector.RollBackEvent;
+import com.totoro.canal.es.select.selector.TotoroSelector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
@@ -17,25 +23,63 @@ import java.util.concurrent.*;
  */
 public class TotoroChannel {
 
-    private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(50);
+    private BooleanMutex rollBack = RollBackMonitorFactory.getBooleanMutex();
 
-    private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(50);
+    private Logger logger = LoggerFactory.getLogger(TotoroChannel.class);
+
+    private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(1);
+
+    private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(2);
+
+    private LinkedBlockingQueue<RollBackEvent> rollBackEvents = new LinkedBlockingQueue<>(1);
+
+    private TotoroSelector totoroSelector;
+
+    public TotoroChannel(TotoroSelector totoroSelector) {
+        this.totoroSelector = totoroSelector;
+    }
+
+    public void ack(Long batchId) {
+        totoroSelector.ack(batchId);
+    }
+
+    /**
+     * 处于回滚状态下，拒绝所有put的消息
+     */
+
+    public void clearMessage() {
+        selectorMessageQueue.clear();
+        transFormFuture.clear();
+    }
+
 
     public void putMessage(Message e) throws InterruptedException {
-        selectorMessageQueue.put(e);
+        if (rollBack.state()==true) {
+            selectorMessageQueue.put(e);
+        } else {
+            logger.info("拒绝消息");
+        }
     }
 
     public Message takeMessage() throws InterruptedException {
         return selectorMessageQueue.take();
     }
 
-
     public void putFuture(Future<ElasticsearchMetadata> future) throws InterruptedException {
-        transFormFuture.put(future);
+        if (rollBack.state()==true) {
+            transFormFuture.put(future);
+        } else {
+            future.cancel(true);
+            logger.info("拒绝future");
+        }
     }
 
     public Future<ElasticsearchMetadata> takeFuture() throws InterruptedException {
         return transFormFuture.take();
+    }
+
+    public RollBackEvent takeRollBackEvent() throws InterruptedException {
+        return rollBackEvents.take();
     }
 
 }

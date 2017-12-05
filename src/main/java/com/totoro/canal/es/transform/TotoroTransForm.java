@@ -3,6 +3,8 @@ package com.totoro.canal.es.transform;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 
@@ -20,6 +22,8 @@ import java.util.concurrent.Callable;
  */
 public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata>, Callable<ElasticsearchMetadata> {
 
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
     private Message message;
 
     private TransForm transForm;
@@ -35,9 +39,9 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
 
     @Override
     public ElasticsearchMetadata trans(Message input) {
-        System.out.println(Thread.currentThread().getName() + "处理消息id ：" + input.getId());
+        logger.info(Thread.currentThread().getName() + "处理消息id ：" + input.getId());
         long sum = input.getEntries().stream().filter((s) -> s.getEntryType().equals(CanalEntry.EntryType.ROWDATA)).count();
-        return new ElasticsearchMetadata().setId(String.valueOf(sum));
+        return new ElasticsearchMetadata().setId(String.valueOf(sum)).setBatchId(input.getId());
     }
 
     public TransForm getTransForm() {

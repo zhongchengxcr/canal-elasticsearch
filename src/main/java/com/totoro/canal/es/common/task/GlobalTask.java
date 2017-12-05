@@ -57,7 +57,7 @@ public abstract class GlobalTask extends Thread {
 
 
     protected String createTaskName(String taskName) {
-        return new StringBuilder().append("pipelineId = ").append(",taskName = ").append(taskName).toString();
+        return new StringBuilder().append("taskName = ").append(taskName).toString();
     }
 
 
