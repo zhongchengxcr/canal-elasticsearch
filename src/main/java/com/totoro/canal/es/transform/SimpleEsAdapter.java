@@ -2,6 +2,8 @@ package com.totoro.canal.es.transform;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.select.selector.CanalConf;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -23,8 +25,30 @@ public class SimpleEsAdapter implements EsAdapter {
 
     private static Map<CanalEntry.EventType, Integer> eventTypePair = new ConcurrentHashMap<>();
 
+    private static final String DELIMITER = ",";
+
+    private static final String CONNECTOR = "\\.";
+
+    /**
+     * ConcurrentHashMap其实可以考虑换成普通 hasmap
+     * 因为正常情况下不会出现并发写 导致的扩容死循环问题
+     * 但考虑到以后可能会增加功能而导致并发，所以选择ConcurrentHashMap
+     * 并且目前大部分是读操作，性能不会相差太多
+     */
     private static Map<String, String> idPair = new ConcurrentHashMap<>();
 
+    public SimpleEsAdapter(CanalConf canalConf) {
+        String accept = canalConf.getAccept();
+        String[] acceptArr = accept.split(DELIMITER);
+        for (String str : acceptArr) {
+            String[] strArr = str.split(CONNECTOR);
+            if (strArr.length == 3) {
+                String dataBaseTable = StringUtils.substringBeforeLast(str, CONNECTOR);
+                String idColumn = StringUtils.substringAfterLast(str, CONNECTOR);
+                idPair.put(dataBaseTable, idColumn);
+            }
+        }
+    }
 
     static {
         eventTypePair.put(CanalEntry.EventType.INSERT, ElasticsearchMetadata.INSERT);
@@ -32,15 +56,10 @@ public class SimpleEsAdapter implements EsAdapter {
         eventTypePair.put(CanalEntry.EventType.DELETE, ElasticsearchMetadata.DELETE);
     }
 
-    static {
-        //TODO
-    }
 
     @Override
     public String getEsIdColumn(String database, String table) {
-
-        //TODO
-        return "id";
+        return idPair.get(database + CONNECTOR + table);
     }
 
     @Override

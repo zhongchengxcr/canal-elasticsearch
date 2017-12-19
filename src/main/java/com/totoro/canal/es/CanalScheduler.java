@@ -62,14 +62,14 @@ public class CanalScheduler {
 
         MessageFilterChain messageFilterChain = MessageFilterChain.getInstance();
 
-        MessageFilter tableFilter = new TableFilter();
+        MessageFilter tableFilter = new TableFilter(canalConf);
         MessageFilter simpleFilter = new SimpleMessageFilter();
 
         messageFilterChain.register(tableFilter);
         messageFilterChain.register(simpleFilter);
 
 
-        EsAdapter esAdapter = new SimpleEsAdapter();
+        EsAdapter esAdapter = new SimpleEsAdapter(canalConf);
 
         ElasticsearchService elasticsearchService = new ElasticsearchServiceImpl();
         Consumer consumer = new ElasticSearchLoad(elasticsearchService);
@@ -101,12 +101,13 @@ public class CanalScheduler {
     private CanalConf getCanalConf(Properties conf) {
 
         String address = conf.getProperty("totoro.canal.address");
-        String zkAddress = conf.getProperty("totoro.cannal.zk.address");
+        String zkAddress = conf.getProperty("totoro.canal.zk.address");
         String username = conf.getProperty("totoro.canal.username");
         String password = conf.getProperty("totoro.canal.password");
         String mode = conf.getProperty("totoro.canal.mode");
         String destination = conf.getProperty("totoro.canal.destination");
         String filterPatten = conf.getProperty("totoro.canal.filter.patten");
+        String accept = conf.getProperty("totoro.canal.table.accept");
 
         return new CanalConf()
                 .setAddress(address)
@@ -116,6 +117,7 @@ public class CanalScheduler {
                 .setMode(mode)
                 .setDestination(destination)
                 .setFilterPatten(filterPatten)
+                .setAccept(accept)
                 .builder();
     }
 

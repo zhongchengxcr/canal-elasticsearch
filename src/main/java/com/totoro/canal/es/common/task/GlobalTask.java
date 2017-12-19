@@ -74,9 +74,7 @@ public abstract class GlobalTask extends Thread {
 
     }
 
-
     // ====================== setter / getter =========================
-
 
     public void setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;

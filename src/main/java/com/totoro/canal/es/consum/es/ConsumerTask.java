@@ -59,20 +59,23 @@ public class ConsumerTask extends GlobalTask {
                 //如果回滚则无限的丢弃任务
                 ElasticsearchMetadata elasticsearchMetadata = future.get();
 
+
                 logger.info("消费数据 =====" + elasticsearchMetadata.getBatchId());
                 consumer.consume(elasticsearchMetadata);
 
 
+                channel.ack(elasticsearchMetadata.getBatchId());
+
                 //测试
-                if (elasticsearchMetadata.getBatchId() % 2 == 0) {
-                    logger.info("要回滚了");
-                    rollBack.set(false);
-                    //channel.rollback(new RollBackEvent(elasticsearchMetadata.getBatchId()));
-                    //Thread.sleep(500);
-                } else {
-                    channel.ack(elasticsearchMetadata.getBatchId());
-                    logger.info("应答 ：" + elasticsearchMetadata.getBatchId());
-                }
+//                if (elasticsearchMetadata.getBatchId() % 2 == 0) {
+//                    logger.info("要回滚了");
+//                    rollBack.set(false);
+//                    //channel.rollback(new RollBackEvent(elasticsearchMetadata.getBatchId()));
+//                    //Thread.sleep(500);
+//                } else {
+//
+//                    logger.info("应答 ：" + elasticsearchMetadata.getBatchId());
+//                }
 
 
             } catch (InterruptedException | ExecutionException e) {

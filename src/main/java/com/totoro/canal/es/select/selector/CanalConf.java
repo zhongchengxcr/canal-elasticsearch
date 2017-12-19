@@ -38,6 +38,8 @@ public class CanalConf implements Serializable {
 
     private String passWord;
 
+    private String accept;
+
 
     public CanalEmbedSelector.Mode getMode() {
         return mode;
@@ -112,9 +114,20 @@ public class CanalConf implements Serializable {
         return this;
     }
 
+
+    public String getAccept() {
+        return accept;
+    }
+
+    public CanalConf setAccept(String accept) {
+        this.accept = accept;
+        return this;
+    }
+
     public CanalConf builder() {
 
         Preconditions.checkArgument(StringUtils.isNotEmpty(destination), "Illegal destination , destination can't be empty");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(accept), "Illegal accept , accept can't be empty");
 
         if (CanalEmbedSelector.Mode.SIGN.equals(mode)) {
             Preconditions.checkArgument(IPAddressUtil.isAddress(address), "Illegal address : %s", address);
@@ -136,7 +149,8 @@ public class CanalConf implements Serializable {
         sb.append(", address='").append(address).append('\'');
         sb.append(", zkAddress='").append(zkAddress).append('\'');
         sb.append(", userName='").append(userName).append('\'');
-        sb.append(", passWord='").append("******").append('\'');
+        sb.append(", passWord='").append(passWord).append('\'');
+        sb.append(", accept='").append(accept).append('\'');
         sb.append('}');
         return sb.toString();
     }

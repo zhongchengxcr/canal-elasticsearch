@@ -1,6 +1,11 @@
 package com.totoro.canal.es.transform;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.totoro.canal.es.select.selector.CanalConf;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 说明 . <br>
@@ -16,17 +21,31 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
  */
 public class TableFilter implements MessageFilter {
 
-    public TableFilter(MessageFilterChain messageFilterChain) {
-        messageFilterChain.register(this);
-    }
+    private static final String DELIMITER = ",";
 
-    public TableFilter() {
+    private static final String CONNECTOR = "\\.";
+
+    private Set<String> acceptTable = new HashSet<>();
+
+    public TableFilter(CanalConf canalConf) {
+        String accept = canalConf.getAccept();
+        String[] acceptArr = accept.split(DELIMITER);
+        for (String str : acceptArr) {
+            String[] strArr = str.split(CONNECTOR);
+            if (strArr.length == 2) {
+                acceptTable.add(str);
+            } else if (strArr.length == 3) {
+                acceptTable.add(StringUtils.substringBeforeLast(str, CONNECTOR));
+            }
+        }
     }
 
 
     @Override
     public boolean filter(CanalEntry.Entry entry) {
-        return true;
+        String database = entry.getHeader().getSchemaName();
+        String table = entry.getHeader().getTableName();
+        return acceptTable.contains(database + CONNECTOR + table);
     }
 
 

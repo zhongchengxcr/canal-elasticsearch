@@ -47,10 +47,9 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
     public ElasticsearchMetadata trans(Message message) {
         logger.info(Thread.currentThread().getName() + "处理消息id ：" + message.getId());
         List<CanalEntry.Entry> entries = message.getEntries();
-        ElasticsearchMetadata elasticsearchMetadata = null;
+        ElasticsearchMetadata elasticsearchMetadata = new ElasticsearchMetadata();
+        elasticsearchMetadata.setBatchId(message.getId());
         if (entries != null && entries.size() > 0) {
-            elasticsearchMetadata = new ElasticsearchMetadata();
-            elasticsearchMetadata.setBatchId(message.getId());
             List<ElasticsearchMetadata.EsEntry> esEntryList = new ArrayList<>(entries.size());
             entries.forEach(entry -> {
                 if (messageFilterChain.filter(entry)) {
@@ -63,9 +62,6 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
                 }
             });
 
-            if (esEntryList.size() <= 0) {
-                return null;
-            }
             elasticsearchMetadata.setEsEntries(esEntryList);
         }
         return elasticsearchMetadata;
