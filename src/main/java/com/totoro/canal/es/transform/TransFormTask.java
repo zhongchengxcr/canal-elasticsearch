@@ -28,7 +28,10 @@ public class TransFormTask extends GlobalTask {
 
     private BooleanMutex booleanMutex = RollBackMonitorFactory.getBooleanMutex();
 
-    public TransFormTask(TotoroChannel channel) {
+    private EsAdapter esAdapter;
+
+
+    public TransFormTask(TotoroChannel channel, EsAdapter esAdapter) {
 
         logger.info("TransFormTask init .......");
 
@@ -37,6 +40,7 @@ public class TransFormTask extends GlobalTask {
                 .setNameFormat("trans-pool-%d")
                 .build();
         executorService = Executors.newFixedThreadPool(10, threadFactory);
+        this.esAdapter = esAdapter;
 
         logger.info("TransFormTask init complete.......");
     }
@@ -55,7 +59,7 @@ public class TransFormTask extends GlobalTask {
             try {
                 Message message = channel.takeMessage();
                 logger.info("数据来了 ：" + message.getId());
-                TotoroTransForm transForm = new TotoroTransForm(message);
+                TotoroTransForm transForm = new TotoroTransForm(message, esAdapter);
                 Future<ElasticsearchMetadata> future = executorService.submit(transForm);
                 channel.putFuture(future);
             } catch (InterruptedException e) {

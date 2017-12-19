@@ -1,7 +1,5 @@
 package com.totoro.canal.es.common;
 
-import com.alibaba.otter.canal.common.CanalLifeCycle;
-
 /**
  * 基本实现 . <br>
  * <p>

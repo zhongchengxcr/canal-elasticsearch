@@ -4,12 +4,12 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.model.es.ElasticsearchMetadata;
-import com.totoro.canal.es.select.selector.RollBackEvent;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * <p>
@@ -27,11 +27,10 @@ public class TotoroChannel {
 
     private Logger logger = LoggerFactory.getLogger(TotoroChannel.class);
 
-    private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(1);
+    private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(3);
 
-    private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(2);
+    private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(3);
 
-    private LinkedBlockingQueue<RollBackEvent> rollBackEvents = new LinkedBlockingQueue<>(1);
 
     private TotoroSelector totoroSelector;
 
@@ -78,8 +77,5 @@ public class TotoroChannel {
         return transFormFuture.take();
     }
 
-    public RollBackEvent takeRollBackEvent() throws InterruptedException {
-        return rollBackEvents.take();
-    }
 
 }

@@ -77,21 +77,22 @@ public class TotoroLauncher {
                 continue;
             }
 
-            CanalEntry.RowChange rowChage = null;
+            CanalEntry.RowChange rowChange;
             try {
-                rowChage = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
+                rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
             } catch (Exception e) {
                 throw new RuntimeException("ERROR ## parser of eromanga-event has an error , data:" + entry.toString(),
                         e);
             }
 
-            CanalEntry.EventType eventType = rowChage.getEventType();
-            System.out.println(String.format("================>; binlog[%s:%s] , name[%s,%s] , eventType : %s",
+            CanalEntry.EventType eventType = rowChange.getEventType();
+
+            logger.info(String.format("================>; binlog[%s:%s] , name[%s,%s] , eventType : %s",
                     entry.getHeader().getLogfileName(), entry.getHeader().getLogfileOffset(),
                     entry.getHeader().getSchemaName(), entry.getHeader().getTableName(),
                     eventType));
 
-            for (CanalEntry.RowData rowData : rowChage.getRowDatasList()) {
+            for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
                 if (eventType == CanalEntry.EventType.DELETE) {
                     printColumn(rowData.getBeforeColumnsList());
                 } else if (eventType == CanalEntry.EventType.INSERT) {

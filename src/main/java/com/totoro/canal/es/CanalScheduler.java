@@ -11,7 +11,7 @@ import com.totoro.canal.es.select.selector.CanalConf;
 import com.totoro.canal.es.select.selector.SelectorTask;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import com.totoro.canal.es.select.selector.canal.CanalEmbedSelector;
-import com.totoro.canal.es.transform.TransFormTask;
+import com.totoro.canal.es.transform.*;
 import org.apache.commons.lang.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,7 @@ public class CanalScheduler {
 
     public CanalScheduler(final Properties conf) {
 
+
         logger.info("CanalScheduler init .......");
 
         this.conf = conf;
@@ -58,10 +59,22 @@ public class CanalScheduler {
         totoroSelector = new CanalEmbedSelector(canalConf);
         channel = new TotoroChannel(totoroSelector);
 
+
+        MessageFilterChain messageFilterChain = MessageFilterChain.getInstance();
+
+        MessageFilter tableFilter = new TableFilter();
+        MessageFilter simpleFilter = new SimpleMessageFilter();
+
+        messageFilterChain.register(tableFilter);
+        messageFilterChain.register(simpleFilter);
+
+
+        EsAdapter esAdapter = new SimpleEsAdapter();
+
         ElasticsearchService elasticsearchService = new ElasticsearchServiceImpl();
         Consumer consumer = new ElasticSearchLoad(elasticsearchService);
         SelectorTask selectorTask = new SelectorTask(totoroSelector, channel, this);
-        TransFormTask transFormTask = new TransFormTask(channel);
+        TransFormTask transFormTask = new TransFormTask(channel, esAdapter);
         ConsumerTask consumerTask = new ConsumerTask(channel, consumer);
 
         taskMap.put(ClassUtils.getShortClassName(SelectorTask.class), selectorTask);

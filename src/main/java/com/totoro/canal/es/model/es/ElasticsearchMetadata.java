@@ -1,7 +1,6 @@
 package com.totoro.canal.es.model.es;
 
-import com.totoro.canal.es.common.Message;
-
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,62 +16,90 @@ import java.util.Map;
  * @version 1.0.0
  */
 public class ElasticsearchMetadata {
-    protected Long batchId;
 
-    private String index;
+    public final static int INSERT = 1;
 
-    private String type;
+    public final static int DELETE = 2;
 
-    private String id;
+    public final static int UPDATE = 3;
 
-    private Map<String, Object> dataMap;
+    private Long batchId;
 
-    private Map<String, Map<String, Object>> idDataMap;
+    private List<EsEntry> esEntries;
 
-    public String getIndex() {
-        return index;
+
+    public static class EsEntry {
+
+        private String index;
+
+        private String type;
+
+        private int eventType;
+
+        private List<EsRowData> esRowDatas;
+
+        public String getIndex() {
+            return index;
+        }
+
+        public EsEntry setIndex(String index) {
+            this.index = index;
+            return this;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public EsEntry setType(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public List<EsRowData> getEsRowDatas() {
+            return esRowDatas;
+        }
+
+        public EsEntry setEsRowDatas(List<EsRowData> esRowDatas) {
+            this.esRowDatas = esRowDatas;
+            return this;
+        }
+
+        public int getEventType() {
+            return eventType;
+        }
+
+        public EsEntry setEventType(int eventType) {
+            this.eventType = eventType;
+            return this;
+        }
     }
 
-    public ElasticsearchMetadata setIndex(String index) {
-        this.index = index;
-        return this;
+
+    public static class EsRowData {
+        public String id;
+
+        public Map<String, Object> rowData;
+
+        public String getId() {
+            return id;
+        }
+
+        public EsRowData setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Map<String, Object> getRowData() {
+            return rowData;
+        }
+
+        public EsRowData setRowData(Map<String, Object> rowData) {
+            this.rowData = rowData;
+            return this;
+        }
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public ElasticsearchMetadata setType(String type) {
-        this.type = type;
-        return this;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public ElasticsearchMetadata setId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    public Map<String, Object> getDataMap() {
-        return dataMap;
-    }
-
-    public ElasticsearchMetadata setDataMap(Map<String, Object> dataMap) {
-        this.dataMap = dataMap;
-        return this;
-    }
-
-    public Map<String, Map<String, Object>> getIdDataMap() {
-        return idDataMap;
-    }
-
-    public ElasticsearchMetadata setIdDataMap(Map<String, Map<String, Object>> idDataMap) {
-        this.idDataMap = idDataMap;
-        return this;
-    }
 
     public Long getBatchId() {
         return batchId;
@@ -80,6 +107,15 @@ public class ElasticsearchMetadata {
 
     public ElasticsearchMetadata setBatchId(Long batchId) {
         this.batchId = batchId;
+        return this;
+    }
+
+    public List<EsEntry> getEsEntries() {
+        return esEntries;
+    }
+
+    public ElasticsearchMetadata setEsEntries(List<EsEntry> esEntries) {
+        this.esEntries = esEntries;
         return this;
     }
 }
