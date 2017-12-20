@@ -1,4 +1,4 @@
-package com.totoro.canal.es.model.es;
+package com.totoro.canal.es.consum.es;
 
 import java.util.List;
 import java.util.Map;
@@ -77,16 +77,17 @@ public class ElasticsearchMetadata {
 
 
     public static class EsRowData {
-        public String id;
+        public String idColumn;
 
         public Map<String, Object> rowData;
 
-        public String getId() {
-            return id;
+
+        public String getIdColumn() {
+            return idColumn;
         }
 
-        public EsRowData setId(String id) {
-            this.id = id;
+        public EsRowData setIdColumn(String idColumn) {
+            this.idColumn = idColumn;
             return this;
         }
 

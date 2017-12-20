@@ -4,13 +4,11 @@ import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
-import com.totoro.canal.es.common.task.GlobalTask;
-import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.common.GlobalTask;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.*;
 
 /**
  * 说明 . <br>
@@ -26,18 +24,15 @@ import java.util.concurrent.ThreadFactory;
  */
 public class ConsumerTask extends GlobalTask {
 
-    private Consumer consumer;
+    private final Set<Consumer> consumers = new ConcurrentHashMap<Consumer, Boolean>().keySet(true);
 
     private TotoroChannel channel;
 
     private BooleanMutex rollBack = RollBackMonitorFactory.getBooleanMutex();
 
-    public ConsumerTask(TotoroChannel totoroChannel, Consumer consumer) {
-
+    public ConsumerTask(TotoroChannel totoroChannel) {
         logger.info("ConsumerTask init .......");
-
         this.channel = totoroChannel;
-        this.consumer = consumer;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("esload-pool-%d").build();
         executorService = Executors.newSingleThreadExecutor(threadFactory);
 
@@ -59,30 +54,26 @@ public class ConsumerTask extends GlobalTask {
                 //如果回滚则无限的丢弃任务
                 ElasticsearchMetadata elasticsearchMetadata = future.get();
 
-
                 logger.info("消费数据 =====" + elasticsearchMetadata.getBatchId());
-                consumer.consume(elasticsearchMetadata);
 
+                consumers.forEach(consumer -> consumer.consume(elasticsearchMetadata));
 
                 channel.ack(elasticsearchMetadata.getBatchId());
 
-                //测试
-//                if (elasticsearchMetadata.getBatchId() % 2 == 0) {
-//                    logger.info("要回滚了");
-//                    rollBack.set(false);
-//                    //channel.rollback(new RollBackEvent(elasticsearchMetadata.getBatchId()));
-//                    //Thread.sleep(500);
-//                } else {
-//
-//                    logger.info("应答 ：" + elasticsearchMetadata.getBatchId());
-//                }
-
-
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                //roll back
+                rollBack.set(false); //回滚
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
     }
+
+    public void register(Consumer consumer) {
+        consumers.add(consumer);
+    }
+
 
 }

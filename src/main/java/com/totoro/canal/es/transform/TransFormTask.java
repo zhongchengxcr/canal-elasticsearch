@@ -5,8 +5,8 @@ import com.alibaba.otter.canal.protocol.Message;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
-import com.totoro.canal.es.common.task.GlobalTask;
-import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.common.GlobalTask;
+import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 
 import java.util.concurrent.*;
 
@@ -39,7 +39,7 @@ public class TransFormTask extends GlobalTask {
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setNameFormat("trans-pool-%d")
                 .build();
-        executorService = Executors.newFixedThreadPool(10, threadFactory);
+        executorService = Executors.newFixedThreadPool(3, threadFactory);
         this.esAdapter = esAdapter;
 
         logger.info("TransFormTask init complete.......");

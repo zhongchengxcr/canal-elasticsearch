@@ -1,7 +1,7 @@
 package com.totoro.canal.es.transform;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import com.totoro.canal.es.select.selector.CanalConf;
 import org.apache.commons.lang.StringUtils;
 
@@ -29,6 +29,8 @@ public class SimpleEsAdapter implements EsAdapter {
 
     private static final String CONNECTOR = "\\.";
 
+    private static final String CONNECTOR_TEP = ".";
+
     /**
      * ConcurrentHashMap其实可以考虑换成普通 hasmap
      * 因为正常情况下不会出现并发写 导致的扩容死循环问题
@@ -43,8 +45,8 @@ public class SimpleEsAdapter implements EsAdapter {
         for (String str : acceptArr) {
             String[] strArr = str.split(CONNECTOR);
             if (strArr.length == 3) {
-                String dataBaseTable = StringUtils.substringBeforeLast(str, CONNECTOR);
-                String idColumn = StringUtils.substringAfterLast(str, CONNECTOR);
+                String dataBaseTable = StringUtils.substringBeforeLast(str, CONNECTOR_TEP);
+                String idColumn = StringUtils.substringAfterLast(str, CONNECTOR_TEP);
                 idPair.put(dataBaseTable, idColumn);
             }
         }
@@ -59,7 +61,7 @@ public class SimpleEsAdapter implements EsAdapter {
 
     @Override
     public String getEsIdColumn(String database, String table) {
-        return idPair.get(database + CONNECTOR + table);
+        return idPair.get(database + CONNECTOR_TEP + table);
     }
 
     @Override

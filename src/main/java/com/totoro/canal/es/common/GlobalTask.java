@@ -1,5 +1,5 @@
 
-package com.totoro.canal.es.common.task;
+package com.totoro.canal.es.common;
 
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;

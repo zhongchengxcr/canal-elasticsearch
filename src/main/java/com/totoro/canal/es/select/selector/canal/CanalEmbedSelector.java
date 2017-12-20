@@ -126,7 +126,7 @@ public class CanalEmbedSelector implements TotoroSelector {
                 message = connector.getWithoutAck(batchSize);
 
                 if (message == null || message.getId() == -1L) {
-                    if (rollBack.state()==false ) {
+                    if (rollBack.state() == false) {
                         break;
                     } else {
                         applyWait(emptyTimes++);

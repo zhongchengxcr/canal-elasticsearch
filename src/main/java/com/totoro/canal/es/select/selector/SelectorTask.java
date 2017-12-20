@@ -2,12 +2,10 @@ package com.totoro.canal.es.select.selector;
 
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
-import com.totoro.canal.es.CanalScheduler;
+import com.totoro.canal.es.TotoroBootStrap;
 import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
-import com.totoro.canal.es.common.task.GlobalTask;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import com.totoro.canal.es.common.GlobalTask;
 
 /**
  * 说明 . <br>
@@ -35,7 +33,7 @@ public class SelectorTask extends GlobalTask {
      * 是否耦合度过高？？
      */
 
-    public SelectorTask(TotoroSelector totoroSelector, TotoroChannel channel, CanalScheduler canalScheduler) {
+    public SelectorTask(TotoroSelector totoroSelector, TotoroChannel channel, TotoroBootStrap canalScheduler) {
         logger.info("Selector task init .......");
         this.totoroSelector = totoroSelector;
         this.channel = channel;

@@ -25,6 +25,8 @@ public class TableFilter implements MessageFilter {
 
     private static final String CONNECTOR = "\\.";
 
+    private static final String CONNECTOR_TEP = ".";
+
     private Set<String> acceptTable = new HashSet<>();
 
     public TableFilter(CanalConf canalConf) {
@@ -35,7 +37,7 @@ public class TableFilter implements MessageFilter {
             if (strArr.length == 2) {
                 acceptTable.add(str);
             } else if (strArr.length == 3) {
-                acceptTable.add(StringUtils.substringBeforeLast(str, CONNECTOR));
+                acceptTable.add(StringUtils.substringBeforeLast(str, CONNECTOR_TEP));
             }
         }
     }
@@ -45,7 +47,7 @@ public class TableFilter implements MessageFilter {
     public boolean filter(CanalEntry.Entry entry) {
         String database = entry.getHeader().getSchemaName();
         String table = entry.getHeader().getTableName();
-        return acceptTable.contains(database + CONNECTOR + table);
+        return acceptTable.contains(database + CONNECTOR_TEP + table);
     }
 
 

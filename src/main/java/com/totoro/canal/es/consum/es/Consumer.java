@@ -1,7 +1,7 @@
 package com.totoro.canal.es.consum.es;
 
-public interface Consumer<T> {
+public interface Consumer {
 
+    void consume(ElasticsearchMetadata object);
 
-    void consume(T object);
 }

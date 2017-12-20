@@ -1,11 +1,8 @@
 package com.totoro.canal.es;
 
 import com.totoro.canal.es.channel.TotoroChannel;
-import com.totoro.canal.es.common.task.GlobalTask;
-import com.totoro.canal.es.consum.es.Consumer;
-import com.totoro.canal.es.consum.es.ConsumerTask;
-import com.totoro.canal.es.consum.es.ElasticSearchLoad;
-import com.totoro.canal.es.consum.es.ElasticsearchService;
+import com.totoro.canal.es.common.GlobalTask;
+import com.totoro.canal.es.consum.es.*;
 import com.totoro.canal.es.consum.es.impl.ElasticsearchServiceImpl;
 import com.totoro.canal.es.select.selector.CanalConf;
 import com.totoro.canal.es.select.selector.SelectorTask;
@@ -13,10 +10,14 @@ import com.totoro.canal.es.select.selector.TotoroSelector;
 import com.totoro.canal.es.select.selector.canal.CanalEmbedSelector;
 import com.totoro.canal.es.transform.*;
 import org.apache.commons.lang.ClassUtils;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.net.util.IPAddressUtil;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * @author zhongcheng_m@yeah.net
  * @version 1.0.0
  */
-public class CanalScheduler {
+public class TotoroBootStrap {
 
 
     private static final Logger logger = LoggerFactory.getLogger(TotoroLauncher.class);
@@ -49,16 +50,17 @@ public class CanalScheduler {
 
     private Map<String, GlobalTask> taskMap = new ConcurrentHashMap<>();
 
-    public CanalScheduler(final Properties conf) {
+    public TotoroBootStrap(final Properties conf) {
 
 
         logger.info("CanalScheduler init .......");
 
         this.conf = conf;
         CanalConf canalConf = getCanalConf(conf);
+        EsConf esConf = getEsConf(conf);
+
         totoroSelector = new CanalEmbedSelector(canalConf);
         channel = new TotoroChannel(totoroSelector);
-
 
         MessageFilterChain messageFilterChain = MessageFilterChain.getInstance();
 
@@ -68,14 +70,20 @@ public class CanalScheduler {
         messageFilterChain.register(tableFilter);
         messageFilterChain.register(simpleFilter);
 
-
         EsAdapter esAdapter = new SimpleEsAdapter(canalConf);
 
-        ElasticsearchService elasticsearchService = new ElasticsearchServiceImpl();
-        Consumer consumer = new ElasticSearchLoad(elasticsearchService);
+
+        ElasticsearchService elasticsearchService = null;
+        try {
+            elasticsearchService = new ElasticsearchServiceImpl(esConf);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        Consumer consumer = new ElasticSearchConsumer(elasticsearchService);
         SelectorTask selectorTask = new SelectorTask(totoroSelector, channel, this);
         TransFormTask transFormTask = new TransFormTask(channel, esAdapter);
-        ConsumerTask consumerTask = new ConsumerTask(channel, consumer);
+        ConsumerTask consumerTask = new ConsumerTask(channel);
+        consumerTask.register(consumer);
 
         taskMap.put(ClassUtils.getShortClassName(SelectorTask.class), selectorTask);
         taskMap.put(ClassUtils.getShortClassName(TransFormTask.class), transFormTask);
@@ -84,6 +92,7 @@ public class CanalScheduler {
 
         logger.info("CanalScheduler init complete .......");
     }
+
 
     public void start() throws InterruptedException, ExecutionException {
         //主线程所在
@@ -95,6 +104,22 @@ public class CanalScheduler {
         totoroSelector.stop();
         taskMap.forEach((key, value) -> value.shutdown());
         taskMap.clear();
+    }
+
+
+    private EsConf getEsConf(Properties conf) {
+
+        String address = conf.getProperty("totoro.es.address");
+        String clusterName = conf.getProperty("totoro.es.cluster.name");
+        String username = conf.getProperty("totoro.es.username");
+        String password = conf.getProperty("totoro.es.password");
+
+        return new EsConf()
+                .setAddress(address)
+                .setClusterName(clusterName)
+                .setUsername(username)
+                .setPassword(password)
+                .builder();
     }
 
 

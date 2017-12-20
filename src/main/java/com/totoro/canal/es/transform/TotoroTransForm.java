@@ -3,7 +3,7 @@ package com.totoro.canal.es.transform;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +87,7 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
             Map<String, Object> columnMap = new HashMap<>(columnList.size());
             columnList.forEach(column -> columnMap.put(column.getName(), column.getValue()));
             esRowData.setRowData(columnMap);
-            esRowData.setId(esAdapter.getEsIdColumn(database, table));//获取es对应的id
+            esRowData.setIdColumn(esAdapter.getEsIdColumn(database, table));//获取es对应的id Column
 
             return esRowData;
 

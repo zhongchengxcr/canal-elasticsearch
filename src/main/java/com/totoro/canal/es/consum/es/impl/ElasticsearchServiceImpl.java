@@ -1,8 +1,19 @@
 package com.totoro.canal.es.consum.es.impl;
 
 
+import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import com.totoro.canal.es.consum.es.ElasticsearchService;
+import com.totoro.canal.es.consum.es.EsConf;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,23 +29,57 @@ import java.util.Map;
  * @version 1.0.0
  */
 public class ElasticsearchServiceImpl implements ElasticsearchService {
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
+    private TransportClient transportClient;
+
+
+    public ElasticsearchServiceImpl(EsConf esConf) throws UnknownHostException {
+
+        String clusterName = esConf.getClusterName();
+        String address = esConf.getAddress();
+        String[] hostPort = address.split(":");
+
+        Settings settings = Settings.builder().put("cluster.name", clusterName)
+                .put("client.transport.sniff", true)
+                .build();
+        transportClient = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostPort[0]), Integer.valueOf(hostPort[1])));
+
+
+        logger.info("elasticsearch transportClient 连接成功");
+    }
+
     @Override
-    public void insertById(String index, String type, String id, Map<String, Object> dataMap) {
+    public void insertById(final String index, final String type, final List<ElasticsearchMetadata.EsRowData> esRowDataList) {
+
+        esRowDataList.forEach(esRowData -> {
+            String idColumn = esRowData.getIdColumn();
+            Map<String, Object> dataMap = esRowData.getRowData();
+            String id = (String) esRowData.getRowData().get(idColumn);
+            transportClient.prepareIndex(index, type, id).setSource(dataMap).get();
+        });
 
     }
 
     @Override
-    public void batchInsertById(String index, String type, Map<String, Map<String, Object>> idDataMap) {
+    public void update(String index, String type, List<ElasticsearchMetadata.EsRowData> esRowDataList) {
+        this.insertById(index, type, esRowDataList);
+    }
+
+    @Override
+    public void deleteById(String index, String type, List<ElasticsearchMetadata.EsRowData> esRowDataList) {
+        esRowDataList.forEach(esRowData -> {
+            String idColumn = esRowData.getIdColumn();
+            String id = (String) esRowData.getRowData().get(idColumn);
+            transportClient.prepareDelete(index, type, id).get();
+        });
 
     }
 
     @Override
-    public void update(String index, String type, String id, Map<String, Object> dataMap) {
-
-    }
-
-    @Override
-    public void deleteById(String index, String type, String id) {
-
+    public void close() {
+        transportClient.close();
     }
 }

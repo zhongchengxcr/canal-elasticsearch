@@ -3,7 +3,7 @@ package com.totoro.canal.es.channel;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
-import com.totoro.canal.es.model.es.ElasticsearchMetadata;
+import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

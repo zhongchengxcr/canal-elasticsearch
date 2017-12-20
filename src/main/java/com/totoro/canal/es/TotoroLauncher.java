@@ -1,13 +1,11 @@
 package com.totoro.canal.es;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
@@ -35,7 +33,7 @@ public class TotoroLauncher {
 
         Properties properties = getProperties(conf);
 
-        CanalScheduler canalScheduler = new CanalScheduler(properties);
+        TotoroBootStrap canalScheduler = new TotoroBootStrap(properties);
         canalScheduler.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
