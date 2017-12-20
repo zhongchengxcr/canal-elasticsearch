@@ -6,7 +6,7 @@
 		</encoder>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>../logs/info.log</file>
+		<file>../logs/totoro.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily -->
 			<fileNamePattern>../logs/totoro.log.%d{yyyy-MM-dd}</fileNamePattern>
