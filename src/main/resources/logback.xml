@@ -9,7 +9,7 @@
 		<file>../logs/info.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover daily -->
-			<fileNamePattern>../logs/info.log.%d{yyyy-MM-dd}</fileNamePattern>
+			<fileNamePattern>../logs/totoro.log.%d{yyyy-MM-dd}</fileNamePattern>
 			<maxHistory>300</maxHistory>
 		</rollingPolicy>
 		<encoder>

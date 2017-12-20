@@ -1,4 +1,4 @@
-![logo.jpg](http://upload-images.jianshu.io/upload_images/4798589-2bbea3ccdafba60b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![logo.jpg](http://upload-images.jianshu.io/upload_images/4798589-0177ebbf0e0e007e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 =========================
 一个基于阿里巴[Canal](https://github.com/alibaba/canal)，实时同步mysql数据到Elasticsearch的工具。轻量，易于配置，部署简单，支持数据回滚。
 使用 Totoro 可以帮助你轻松的将mysql的数据实时同步到Elasticsearch。Totoro是基于阿里巴巴的canal，是数据库级别的
