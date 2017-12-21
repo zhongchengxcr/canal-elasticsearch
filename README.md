@@ -35,8 +35,7 @@ totoro主要分为4个模块: select、Transformation、consumer、channel
 * Transformation 负责将select生产的数据，进行过滤、处理、转换
 * consumer 负责消费数据，在这里就是将数据同步到elasticsearch
 * channel 是以上3个模块链接者，也是数据在totoro中的容器。select将拉取的数据放入channel，Transformation监听到select放入的数据，进行处理，处理完再放回channel，等待consumer去消费
-![totoro.jpg](http://upload-images.jianshu.io/upload_images/4798589-3c944ebe9f017fd7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
+![](http://upload-images.jianshu.io/upload_images/4798589-b373bb768f382564.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 select、Transformation、consumer分别是3个任务，并行执行。为保证数据消费顺序与ack（每次消费一条数据要向canal进行ack）顺序，
 其中select task与consumer task 都分别只有一条线程。而Transformation task具有多条线程。
 
