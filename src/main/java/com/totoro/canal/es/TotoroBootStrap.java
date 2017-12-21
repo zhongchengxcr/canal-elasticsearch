@@ -111,10 +111,10 @@ public class TotoroBootStrap {
     }
 
     public void stop() {
-        totoroSelector.stop();
         taskMap.forEach((key, value) -> value.shutdown());
         taskMap.clear();
         channel.close();
+        totoroSelector.stop();
         elasticsearchService.close();
     }
 
