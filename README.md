@@ -1,6 +1,6 @@
 ![logo.jpg](http://upload-images.jianshu.io/upload_images/4798589-0177ebbf0e0e007e.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 =========================
-一个基于阿里巴[Canal](https://github.com/alibaba/canal)，实时同步mysql数据到Elasticsearch的工具。轻量，易于配置，部署简单，支持数据回滚。
+一个基于阿里巴巴[Canal](https://github.com/alibaba/canal)，实时同步mysql数据到Elasticsearch的工具。轻量，易于配置，部署简单，支持数据回滚。
 使用 Totoro 可以帮助你轻松的将mysql的数据实时同步到Elasticsearch。Totoro是基于阿里巴巴的canal，是数据库级别的
 监听，对原有项目没有任何侵入，所以你无需更改项目中的任何代码就可以实现实时的数据同步。
 
@@ -31,10 +31,10 @@ Totoro的方案是，基于阿里巴巴开源数据库中间件canal，监听mys
 ======================
 
 totoro主要分为4个模块: select、Transformation、consumer、channel
-* select 负责从canal中拉去数据
+* select 负责从canal中拉取数据
 * Transformation 负责将select生产的数据，进行过滤、处理、转换
 * consumer 负责消费数据，在这里就是将数据同步到elasticsearch
-* channel 是以上3个模块链接者，意识数据在totoro中的容器。select 将拉去的数据放入channel，Transformation监听到select放入的数据，进行处理，处理玩再放回channel，等待consumer去消费
+* channel 是以上3个模块链接者，也是数据在totoro中的容器。select将拉取的数据放入channel，Transformation监听到select放入的数据，进行处理，处理完再放回channel，等待consumer去消费
 ![totoro.jpg](http://upload-images.jianshu.io/upload_images/4798589-3c944ebe9f017fd7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 select、Transformation、consumer分别是3个任务，并行执行。为保证数据消费顺序与ack（每次消费一条数据要向canal进行ack）顺序，
@@ -48,7 +48,7 @@ QuickStart
 有关于canal的安装，请参见canal的文档，里面有很详细说明 [Canal QuickStart](https://github.com/alibaba/canal/wiki/QuickStart)
 
 
-2.下载并编译
+2.安装Totoro
 ```
 git clone git@github.com:zhongchengxcr/canal-elasticsearch.git
 cd canal-elasticsearch
@@ -177,4 +177,5 @@ totoro的内存一直在 1G 上下浮动， canal的总垃圾回收时间在 0.1
 * 优先处理性能问题，欢迎提交 pull request
 
 欢迎有想法的朋友一起参与，讨论
+QQ群:688734361
 ![](http://upload-images.jianshu.io/upload_images/4798589-a34789352b17055f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
