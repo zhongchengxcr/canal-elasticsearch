@@ -79,4 +79,12 @@ public class TotoroChannel {
     }
 
 
+    public void close() {
+        Object[] tuple2Arr = transFormFuture.toArray();
+        for (Object obj : tuple2Arr) {
+            Tuple2<Long, Future<ElasticsearchMetadata>> tuple2 = (Tuple2<Long, Future<ElasticsearchMetadata>>) obj;
+            tuple2._2.cancel(true);
+        }
+    }
+
 }

@@ -43,6 +43,8 @@ public class TotoroBootStrap {
 
     private TotoroSelector totoroSelector;
 
+    private ElasticsearchService elasticsearchService;
+
     private Map<String, GlobalTask> taskMap = new ConcurrentHashMap<>();
 
     public TotoroBootStrap(final Properties conf) throws UnknownHostException {
@@ -89,7 +91,7 @@ public class TotoroBootStrap {
 
     private ConsumerTask initConsumerTask(EsConf esConf) throws UnknownHostException {
 
-        ElasticsearchService elasticsearchService = new ElasticsearchServiceImpl(esConf);
+        elasticsearchService = new ElasticsearchServiceImpl(esConf);
         Consumer consumer = new ElasticSearchConsumer(elasticsearchService);
         ConsumerTask consumerTask = new ConsumerTask(channel);
         consumerTask.register(consumer);
@@ -112,6 +114,8 @@ public class TotoroBootStrap {
         totoroSelector.stop();
         taskMap.forEach((key, value) -> value.shutdown());
         taskMap.clear();
+        channel.close();
+        elasticsearchService.close();
     }
 
 
