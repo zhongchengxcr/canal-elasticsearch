@@ -3,6 +3,7 @@ package com.totoro.canal.es.channel;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.alibaba.otter.canal.protocol.Message;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
+import com.totoro.canal.es.common.Tuple2;
 import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import com.totoro.canal.es.select.selector.TotoroSelector;
 import org.slf4j.Logger;
@@ -27,9 +28,9 @@ public class TotoroChannel {
 
     private Logger logger = LoggerFactory.getLogger(TotoroChannel.class);
 
-    private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(3);
+    private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(5);
 
-    private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(3);
+    private LinkedBlockingQueue<Tuple2<Long, Future<ElasticsearchMetadata>>> transFormFuture = new LinkedBlockingQueue<>(5);
 
 
     private TotoroSelector totoroSelector;
@@ -53,10 +54,10 @@ public class TotoroChannel {
 
 
     public void putMessage(Message e) throws InterruptedException {
-        if (rollBack.state()==true) {
+        if (rollBack.state() == true) {
             selectorMessageQueue.put(e);
         } else {
-            logger.info("拒绝消息");
+            logger.info("The rollback happened =============>  discard message , batchId :{}", e.getId());
         }
     }
 
@@ -64,16 +65,16 @@ public class TotoroChannel {
         return selectorMessageQueue.take();
     }
 
-    public void putFuture(Future<ElasticsearchMetadata> future) throws InterruptedException {
-        if (rollBack.state()==true) {
-            transFormFuture.put(future);
+    public void putFuture(Tuple2<Long, Future<ElasticsearchMetadata>> tuple2) throws InterruptedException {
+        if (rollBack.state() == true) {
+            transFormFuture.put(tuple2);
         } else {
-            future.cancel(true);
-            logger.info("拒绝future");
+            tuple2._2.cancel(true);
+            logger.info("The rollback happened =============>  try cancel future ");
         }
     }
 
-    public Future<ElasticsearchMetadata> takeFuture() throws InterruptedException {
+    public Tuple2<Long, Future<ElasticsearchMetadata>> take() throws InterruptedException {
         return transFormFuture.take();
     }
 

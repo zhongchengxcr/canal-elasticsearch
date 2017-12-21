@@ -149,7 +149,6 @@ public class CanalConf implements Serializable {
         sb.append(", address='").append(address).append('\'');
         sb.append(", zkAddress='").append(zkAddress).append('\'');
         sb.append(", userName='").append(userName).append('\'');
-        sb.append(", passWord='").append(passWord).append('\'');
         sb.append(", accept='").append(accept).append('\'');
         sb.append('}');
         return sb.toString();

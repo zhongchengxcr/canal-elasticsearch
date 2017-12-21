@@ -108,6 +108,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <com.alibaba.otter.canal.version>1.0.24</com.alibaba.otter.canal.version>
+        <log4j-to-slf4j>2.7</log4j-to-slf4j>
     </properties>
 
 
@@ -132,8 +133,15 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
-            <version>2.7</version>
+            <version>${log4j-to-slf4j}</version>
         </dependency>
+
+        <!-- ansi().eraseScreen().fg(RED).a("Hello").fg(GREEN).a(" World").reset() -->
+        <!--<dependency>-->
+            <!--<groupId>org.fusesource.jansi</groupId>-->
+            <!--<artifactId>jansi</artifactId>-->
+            <!--<version>1.11</version>-->
+        <!--</dependency>-->
 
     </dependencies>
 

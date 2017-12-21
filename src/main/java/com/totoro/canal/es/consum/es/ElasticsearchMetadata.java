@@ -1,5 +1,7 @@
 package com.totoro.canal.es.consum.es;
 
+import com.google.common.base.Joiner;
+
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +28,6 @@ public class ElasticsearchMetadata {
     private Long batchId;
 
     private List<EsEntry> esEntries;
-
 
     public static class EsEntry {
 
@@ -73,8 +74,33 @@ public class ElasticsearchMetadata {
             this.eventType = eventType;
             return this;
         }
-    }
 
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("EsEntry{");
+            sb.append("index='").append(index).append('\'');
+            sb.append(", type='").append(type).append('\'');
+            sb.append(", eventType=").append(getEventTypeName(eventType));
+            sb.append(", esRowDatas=").append(Joiner.on(",").join(esRowDatas));
+            sb.append('}');
+            return sb.toString();
+        }
+
+
+        public static String getEventTypeName(int eventType) {
+            if (eventType == INSERT) {
+                return "INSERT";
+            } else if (eventType == DELETE) {
+                return "DELETE";
+            } else if (eventType == UPDATE) {
+                return "UPDATE";
+            } else {
+                return "UNKNOW_TYPE";
+            }
+        }
+
+    }
 
     public static class EsRowData {
         public String idColumn;
@@ -99,6 +125,15 @@ public class ElasticsearchMetadata {
             this.rowData = rowData;
             return this;
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("EsRowData{");
+            sb.append("idColumn='").append(idColumn).append('\'');
+            sb.append(", rowData=").append(rowData);
+            sb.append('}');
+            return sb.toString();
+        }
     }
 
 
@@ -118,5 +153,15 @@ public class ElasticsearchMetadata {
     public ElasticsearchMetadata setEsEntries(List<EsEntry> esEntries) {
         this.esEntries = esEntries;
         return this;
+    }
+
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ElasticsearchMetadata{");
+        sb.append("batchId=").append(batchId);
+        sb.append(", esEntries=").append(Joiner.on(",").join(esEntries));
+        sb.append('}');
+        return sb.toString();
     }
 }

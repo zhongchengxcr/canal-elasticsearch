@@ -1,5 +1,8 @@
 package com.totoro.canal.es.consum.es;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 /**
@@ -31,7 +34,6 @@ public class ElasticSearchConsumer implements Consumer {
 
             esEntries.forEach(esEntry -> {
                 int eventType = esEntry.getEventType();
-
                 String index = esEntry.getIndex();
                 String type = esEntry.getType();
                 List<ElasticsearchMetadata.EsRowData> esRowDatas = esEntry.getEsRowDatas();
@@ -39,8 +41,10 @@ public class ElasticSearchConsumer implements Consumer {
                 if (ElasticsearchMetadata.INSERT == eventType) {
                     elasticsearchService.insertById(index, type, esRowDatas);
                 } else if (ElasticsearchMetadata.DELETE == eventType) {
+
                     elasticsearchService.deleteById(index, type, esRowDatas);
                 } else if (ElasticsearchMetadata.UPDATE == eventType) {
+
                     elasticsearchService.update(index, type, esRowDatas);
                 }
 

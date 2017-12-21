@@ -4,6 +4,8 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import com.totoro.canal.es.select.selector.CanalConf;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SimpleEsAdapter implements EsAdapter {
 
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
     private static Map<CanalEntry.EventType, Integer> eventTypePair = new ConcurrentHashMap<>();
 
     private static final String DELIMITER = ",";
@@ -40,6 +44,7 @@ public class SimpleEsAdapter implements EsAdapter {
     private static Map<String, String> idPair = new ConcurrentHashMap<>();
 
     public SimpleEsAdapter(CanalConf canalConf) {
+
         String accept = canalConf.getAccept();
         String[] acceptArr = accept.split(DELIMITER);
         for (String str : acceptArr) {
@@ -48,8 +53,11 @@ public class SimpleEsAdapter implements EsAdapter {
                 String dataBaseTable = StringUtils.substringBeforeLast(str, CONNECTOR_TEP);
                 String idColumn = StringUtils.substringAfterLast(str, CONNECTOR_TEP);
                 idPair.put(dataBaseTable, idColumn);
+
+                logger.info("Add accept :{}", str);
             }
         }
+
     }
 
     static {

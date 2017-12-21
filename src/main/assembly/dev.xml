@@ -35,8 +35,11 @@
             <includes>
                 <include>**/*.properties</include>
                 <include>logback.xml</include>
+                <include>*.logo</include>
             </includes>
         </fileSet>
+
+
         <fileSet>
             <directory>target</directory>
             <outputDirectory>logs</outputDirectory>

@@ -1,6 +1,8 @@
 package com.totoro.canal.es.transform;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @version 1.0.0
  */
 public class MessageFilterChain implements MessageFilter {
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     private MessageFilterChain() {
 
@@ -66,6 +70,7 @@ public class MessageFilterChain implements MessageFilter {
         try {
             writeLock.lock();
             messageFilterList.add(messageFilter);
+            logger.info(messageFilter.getClass().getSimpleName() + " has benn registered to message filter chain ");
         } finally {
             writeLock.unlock();
         }

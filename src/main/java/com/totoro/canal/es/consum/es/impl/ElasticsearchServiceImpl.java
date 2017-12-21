@@ -41,6 +41,8 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
         String address = esConf.getAddress();
         String[] hostPort = address.split(":");
 
+        logger.info("Connect to elasticsearch  {}:{}", clusterName, address);
+
         Settings settings = Settings.builder().put("cluster.name", clusterName)
                 .put("client.transport.sniff", true)
                 .build();
@@ -48,24 +50,30 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostPort[0]), Integer.valueOf(hostPort[1])));
 
 
-        logger.info("elasticsearch transportClient 连接成功");
+        logger.info("Complete the connection to elasticsearch");
     }
 
     @Override
     public void insertById(final String index, final String type, final List<ElasticsearchMetadata.EsRowData> esRowDataList) {
-
         esRowDataList.forEach(esRowData -> {
             String idColumn = esRowData.getIdColumn();
             Map<String, Object> dataMap = esRowData.getRowData();
             String id = (String) esRowData.getRowData().get(idColumn);
             transportClient.prepareIndex(index, type, id).setSource(dataMap).get();
+            logger.info("Insert into elasticsearch  ====> {} ", index + "." + type + "." + id);
         });
 
     }
 
     @Override
     public void update(String index, String type, List<ElasticsearchMetadata.EsRowData> esRowDataList) {
-        this.insertById(index, type, esRowDataList);
+        esRowDataList.forEach(esRowData -> {
+            String idColumn = esRowData.getIdColumn();
+            Map<String, Object> dataMap = esRowData.getRowData();
+            String id = (String) esRowData.getRowData().get(idColumn);
+            transportClient.prepareIndex(index, type, id).setSource(dataMap).get();
+            logger.info("Update into elasticsearch  ====> {} ", index + "." + type + "." + id);
+        });
     }
 
     @Override
@@ -74,6 +82,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
             String idColumn = esRowData.getIdColumn();
             String id = (String) esRowData.getRowData().get(idColumn);
             transportClient.prepareDelete(index, type, id).get();
+            logger.info("Delete into elasticsearch  ====> {} ", index + "." + type + "." + id);
         });
 
     }

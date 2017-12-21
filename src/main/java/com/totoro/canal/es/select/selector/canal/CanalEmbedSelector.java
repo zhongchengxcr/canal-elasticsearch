@@ -59,11 +59,12 @@ public class CanalEmbedSelector implements TotoroSelector {
 
     public CanalEmbedSelector(CanalConf conf) {
 
-        logger.info("TotoroSelector init , conf :{}", conf.toString());
+        logger.info("TotoroSelector init start  , conf :{}", conf.toString());
 
         this.mode = conf.getMode();
         this.destination = conf.getDestination();
         this.filterPatten = conf.getFilterPatten();
+
         String userName = conf.getUserName();
         String passWord = conf.getPassWord();
 
@@ -88,7 +89,7 @@ public class CanalEmbedSelector implements TotoroSelector {
         } else {
             throw new TotoroException("Invalid mode");
         }
-
+        logger.info("TotoroSelector init complete .......");
     }
 
 

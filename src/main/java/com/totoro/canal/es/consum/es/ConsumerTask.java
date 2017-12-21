@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.common.GlobalTask;
+import com.totoro.canal.es.common.Tuple2;
 
 import java.util.List;
 import java.util.Set;
@@ -31,41 +32,59 @@ public class ConsumerTask extends GlobalTask {
     private BooleanMutex rollBack = RollBackMonitorFactory.getBooleanMutex();
 
     public ConsumerTask(TotoroChannel totoroChannel) {
-        logger.info("ConsumerTask init .......");
+        logger.info("Consumer task init start .......");
         this.channel = totoroChannel;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("esload-pool-%d").build();
         executorService = Executors.newSingleThreadExecutor(threadFactory);
 
-        logger.info("ConsumerTask init complete.......");
+        logger.info("Consumer task init complete.......");
     }
 
     @Override
     public void run() {
+        logger.info("ConsumerTask start .......");
         running = true;
         while (running) {
             try {
                 rollBack.get();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Consumer task has benn interrupted ");
+                running = false;
                 break;
             }
             try {
-                Future<ElasticsearchMetadata> future = channel.takeFuture();
-                //如果回滚则无限的丢弃任务
-                ElasticsearchMetadata elasticsearchMetadata = future.get();
+                Tuple2<Long, Future<ElasticsearchMetadata>> tuple2 = channel.take();
 
-                logger.info("消费数据 =====" + elasticsearchMetadata.getBatchId());
+                logger.info("Consumer message start =====> {}", tuple2._1);
+
+                Future<ElasticsearchMetadata> future = tuple2._2;
+
+                ElasticsearchMetadata elasticsearchMetadata = future.get();
 
                 consumers.forEach(consumer -> consumer.consume(elasticsearchMetadata));
 
                 channel.ack(elasticsearchMetadata.getBatchId());
 
-            } catch (InterruptedException | ExecutionException e) {
+                logger.info("Consumer message ack =====> {}", tuple2._1);
+
+            } catch (Exception e) {
+
+                if (e instanceof InterruptedException) {
+                    logger.error("Trans form thread has been interrupted ", e);
+                } else if (e instanceof ExecutionException) {
+                    logger.error("Trans form callable exception ", e);
+                } else {
+                    logger.error("Consumer catch unknow exception ", e);
+                }
+
+                logger.error("Exception occurred , Call roll back!");
                 rollBack.set(false); //回滚
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+                    logger.error("Consumer task has benn interrupted ");
+                    running = false;
+                    break;
                 }
             }
         }

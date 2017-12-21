@@ -10,13 +10,10 @@ import com.totoro.canal.es.select.selector.TotoroSelector;
 import com.totoro.canal.es.select.selector.canal.CanalEmbedSelector;
 import com.totoro.canal.es.transform.*;
 import org.apache.commons.lang.ClassUtils;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Properties;
@@ -40,8 +37,6 @@ public class TotoroBootStrap {
 
     private static final Logger logger = LoggerFactory.getLogger(TotoroLauncher.class);
 
-    private Properties conf;
-
     private volatile boolean running = false;
 
     private TotoroChannel channel;
@@ -50,47 +45,60 @@ public class TotoroBootStrap {
 
     private Map<String, GlobalTask> taskMap = new ConcurrentHashMap<>();
 
-    public TotoroBootStrap(final Properties conf) {
+    public TotoroBootStrap(final Properties conf) throws UnknownHostException {
 
-
-        logger.info("CanalScheduler init .......");
-
-        this.conf = conf;
         CanalConf canalConf = getCanalConf(conf);
         EsConf esConf = getEsConf(conf);
-
+        int transThreadNum = getTransThreadNum(conf);
+        //totoroSelector需要提前初始化好
         totoroSelector = new CanalEmbedSelector(canalConf);
-        channel = new TotoroChannel(totoroSelector);
-
-        MessageFilterChain messageFilterChain = MessageFilterChain.getInstance();
-
-        MessageFilter tableFilter = new TableFilter(canalConf);
-        MessageFilter simpleFilter = new SimpleMessageFilter();
-
-        messageFilterChain.register(tableFilter);
-        messageFilterChain.register(simpleFilter);
-
-        EsAdapter esAdapter = new SimpleEsAdapter(canalConf);
-
-
-        ElasticsearchService elasticsearchService = null;
-        try {
-            elasticsearchService = new ElasticsearchServiceImpl(esConf);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        Consumer consumer = new ElasticSearchConsumer(elasticsearchService);
-        SelectorTask selectorTask = new SelectorTask(totoroSelector, channel, this);
-        TransFormTask transFormTask = new TransFormTask(channel, esAdapter);
-        ConsumerTask consumerTask = new ConsumerTask(channel);
-        consumerTask.register(consumer);
+        //初始化 Channel
+        initChannel();
+        //初始化 SelectorTask
+        SelectorTask selectorTask = initSelectorTask();
+        //初始化 TransFormTask
+        TransFormTask transFormTask = initTransFormTask(canalConf, transThreadNum);
+        //初始化 ConsumerTask
+        ConsumerTask consumerTask = initConsumerTask(esConf);
 
         taskMap.put(ClassUtils.getShortClassName(SelectorTask.class), selectorTask);
         taskMap.put(ClassUtils.getShortClassName(TransFormTask.class), transFormTask);
         taskMap.put(ClassUtils.getShortClassName(ConsumerTask.class), consumerTask);
 
 
-        logger.info("CanalScheduler init complete .......");
+        logger.info("Totoro init complete .......");
+    }
+
+
+    private SelectorTask initSelectorTask() {
+        return new SelectorTask(totoroSelector, channel, this);
+    }
+
+    private TransFormTask initTransFormTask(CanalConf canalConf, int transThreadNum) {
+        MessageFilter tableFilter = new TableFilter(canalConf);
+        MessageFilter simpleFilter = new SimpleMessageFilter();
+
+        MessageFilterChain messageFilterChain = MessageFilterChain.getInstance();
+        messageFilterChain.register(tableFilter);
+        messageFilterChain.register(simpleFilter);
+
+        EsAdapter esAdapter = new SimpleEsAdapter(canalConf);
+
+        return new TransFormTask(channel, esAdapter, transThreadNum);
+    }
+
+    private ConsumerTask initConsumerTask(EsConf esConf) throws UnknownHostException {
+
+        ElasticsearchService elasticsearchService = new ElasticsearchServiceImpl(esConf);
+        Consumer consumer = new ElasticSearchConsumer(elasticsearchService);
+        ConsumerTask consumerTask = new ConsumerTask(channel);
+        consumerTask.register(consumer);
+        return consumerTask;
+    }
+
+
+    private void initChannel() {
+        channel = new TotoroChannel(totoroSelector);
     }
 
 
@@ -144,6 +152,16 @@ public class TotoroBootStrap {
                 .setFilterPatten(filterPatten)
                 .setAccept(accept)
                 .builder();
+    }
+
+
+    private int getTransThreadNum(Properties conf) {
+        String numStr = conf.getProperty("totoro.cannal.trans.thread.nums");
+
+        if (numStr == null || StringUtils.isEmpty(numStr.trim())) {
+            return 3;
+        }
+        return Integer.valueOf(numStr);
     }
 
 

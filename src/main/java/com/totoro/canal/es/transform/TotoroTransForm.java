@@ -40,12 +40,12 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
 
     @Override
     public ElasticsearchMetadata call() throws Exception {
+
         return trans(message);
     }
 
     @Override
     public ElasticsearchMetadata trans(Message message) {
-        logger.info(Thread.currentThread().getName() + "处理消息id ：" + message.getId());
         List<CanalEntry.Entry> entries = message.getEntries();
         ElasticsearchMetadata elasticsearchMetadata = new ElasticsearchMetadata();
         elasticsearchMetadata.setBatchId(message.getId());
@@ -61,9 +61,11 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
                     }
                 }
             });
-
             elasticsearchMetadata.setEsEntries(esEntryList);
         }
+
+        logger.info("Trans form complete message id =====> {}", message.getId());
+        logger.info("Trans form complete elasticsearch metadata  =====> {}", elasticsearchMetadata.toString());
         return elasticsearchMetadata;
     }
 

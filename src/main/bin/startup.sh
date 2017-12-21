@@ -13,8 +13,11 @@ base=${bin_abs_path}/..
 sync_conf=$base/conf/canal-es.properties
 loader_path=$base/conf
 logback_configurationFile=$base/conf/logback.xml
+totoro_logo=$base/conf/totoro-logo.logo
 export LANG=en_US.UTF-8
 export BASE=$base
+
+cat $totoro_logo
 
 if [ -f $base/bin/totoro.pid ] ; then
 	echo "found totoro.pid , Please run stop.sh first ,then startup.sh" 2>&2
@@ -87,7 +90,7 @@ then
  	
 	echo LOG CONFIGURATION : $logback_configurationFile
 	echo sync conf : $sync_conf
-	echo CLASSPATH :$CLASSPATH
+	##echo CLASSPATH :$CLASSPATH
 	$JAVA $JAVA_OPTS $JAVA_DEBUG_OPT $CANAL_OPTS -classpath .:$CLASSPATH com.totoro.canal.es.TotoroLauncher 1>>$base/logs/totoro.log 2>&1 &
 
 	echo $! > $base/bin/totoro.pid
@@ -95,5 +98,5 @@ then
 	echo "cd to $current_path for continue"
   	cd $current_path
 else 
-	echo "sync conf("$sync_conf") OR log configration file($logback_configurationFile) is not exist,please create then first!"
+	echo "totoro conf("$sync_conf") OR log configration file($logback_configurationFile) is not exist,please create then first!"
 fi
