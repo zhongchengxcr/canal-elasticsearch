@@ -1,8 +1,9 @@
 package com.totoro.canal.es.consum.es;
 
 import com.google.common.base.Joiner;
+import com.totoro.canal.es.common.RecycleAble;
+import io.netty.util.Recycler;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,7 +18,7 @@ import java.util.Map;
  * @author zhongcheng_m@yeah.net
  * @version 1.0.0
  */
-public class ElasticsearchMetadata {
+public class ElasticsearchMetadata implements RecycleAble {
 
     public final static int INSERT = 1;
 
@@ -27,9 +28,25 @@ public class ElasticsearchMetadata {
 
     private Long batchId;
 
-    private List<EsEntry> esEntries;
+    private EsEntryArrayList esEntries;
 
-    public static class EsEntry {
+    private final Recycler.Handle<ElasticsearchMetadata> handle;
+
+    public ElasticsearchMetadata(Recycler.Handle<ElasticsearchMetadata> handle) {
+        this.handle = handle;
+    }
+
+    @Override
+    public boolean recycle() {
+        batchId = null;
+        if (esEntries != null) {
+            esEntries.recycle();
+        }
+        handle.recycle(this);
+        return true;
+    }
+
+    public static class EsEntry implements RecycleAble {
 
         private String index;
 
@@ -37,7 +54,26 @@ public class ElasticsearchMetadata {
 
         private int eventType;
 
-        private List<EsRowData> esRowDatas;
+        private EsRowDataArrayList esRowDatas;
+
+        private final Recycler.Handle<EsEntry> handle;
+
+        @Override
+        public boolean recycle() {
+            index = null;
+            type = null;
+            eventType = 0;
+            if (esRowDatas != null) {
+                esRowDatas.recycle();
+            }
+            handle.recycle(this);
+            return true;
+        }
+
+
+        public EsEntry(Recycler.Handle<EsEntry> handle) {
+            this.handle = handle;
+        }
 
         public String getIndex() {
             return index;
@@ -57,11 +93,11 @@ public class ElasticsearchMetadata {
             return this;
         }
 
-        public List<EsRowData> getEsRowDatas() {
+        public EsRowDataArrayList getEsRowDatas() {
             return esRowDatas;
         }
 
-        public EsEntry setEsRowDatas(List<EsRowData> esRowDatas) {
+        public EsEntry setEsRowDatas(EsRowDataArrayList esRowDatas) {
             this.esRowDatas = esRowDatas;
             return this;
         }
@@ -100,12 +136,27 @@ public class ElasticsearchMetadata {
             }
         }
 
+
     }
 
-    public static class EsRowData {
+    public static class EsRowData implements RecycleAble {
         public String idColumn;
 
-        public Map<String, Object> rowData;
+        public EsColumnHashMap rowData;
+
+        private final Recycler.Handle<EsRowData> handle;
+
+        public EsRowData(Recycler.Handle<EsRowData> handle) {
+            this.handle = handle;
+        }
+
+        @Override
+        public boolean recycle() {
+            idColumn = null;
+            rowData.recycle();
+            handle.recycle(this);
+            return true;
+        }
 
 
         public String getIdColumn() {
@@ -121,7 +172,7 @@ public class ElasticsearchMetadata {
             return rowData;
         }
 
-        public EsRowData setRowData(Map<String, Object> rowData) {
+        public EsRowData setRowData(EsColumnHashMap rowData) {
             this.rowData = rowData;
             return this;
         }
@@ -134,6 +185,8 @@ public class ElasticsearchMetadata {
             sb.append('}');
             return sb.toString();
         }
+
+
     }
 
 
@@ -146,15 +199,15 @@ public class ElasticsearchMetadata {
         return this;
     }
 
-    public List<EsEntry> getEsEntries() {
+
+    public EsEntryArrayList getEsEntries() {
         return esEntries;
     }
 
-    public ElasticsearchMetadata setEsEntries(List<EsEntry> esEntries) {
+    public ElasticsearchMetadata setEsEntries(EsEntryArrayList esEntries) {
         this.esEntries = esEntries;
         return this;
     }
-
 
     @Override
     public String toString() {

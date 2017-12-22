@@ -2,6 +2,9 @@ package test.syn;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -23,14 +26,23 @@ public class Lock {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
 
-        Student student = new Student("ZHONGC",12);
-        List<Student> students = new ArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-        students.add(student);
-        student = new Student("asd",18);
-        students.add(student);
+
+        TestFuture testFuture = new TestFuture(() -> {
+            Thread.sleep(4000);
+            return "zhong";
+        });
+
+        executorService.submit(testFuture);
+
+        System.out.printf("-------");
+
+        System.out.printf(testFuture.get());
+
+        System.out.printf("asdasda");
 
     }
 

@@ -30,7 +30,7 @@ public class TotoroChannel {
 
     private LinkedBlockingQueue<Message> selectorMessageQueue = new LinkedBlockingQueue<>(5);
 
-    private LinkedBlockingQueue<Tuple2<Long, Future<ElasticsearchMetadata>>> transFormFuture = new LinkedBlockingQueue<>(5);
+    private LinkedBlockingQueue<Future<ElasticsearchMetadata>> transFormFuture = new LinkedBlockingQueue<>(5);
 
 
     private TotoroSelector totoroSelector;
@@ -65,16 +65,16 @@ public class TotoroChannel {
         return selectorMessageQueue.take();
     }
 
-    public void putFuture(Tuple2<Long, Future<ElasticsearchMetadata>> tuple2) throws InterruptedException {
+    public void putFuture(Future<ElasticsearchMetadata> future) throws InterruptedException {
         if (rollBack.state() == true) {
-            transFormFuture.put(tuple2);
+            transFormFuture.put(future);
         } else {
-            tuple2._2.cancel(true);
+            future.cancel(true);
             logger.info("The rollback happened =============>  try cancel future ");
         }
     }
 
-    public Tuple2<Long, Future<ElasticsearchMetadata>> take() throws InterruptedException {
+    public Future<ElasticsearchMetadata> take() throws InterruptedException {
         return transFormFuture.take();
     }
 
@@ -82,8 +82,8 @@ public class TotoroChannel {
     public void close() {
         Object[] tuple2Arr = transFormFuture.toArray();
         for (Object obj : tuple2Arr) {
-            Tuple2<Long, Future<ElasticsearchMetadata>> tuple2 = (Tuple2<Long, Future<ElasticsearchMetadata>>) obj;
-            tuple2._2.cancel(true);
+            Future<ElasticsearchMetadata> future = (Future<ElasticsearchMetadata>) obj;
+            future.cancel(true);
         }
     }
 

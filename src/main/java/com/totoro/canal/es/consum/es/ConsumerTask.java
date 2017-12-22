@@ -52,20 +52,21 @@ public class ConsumerTask extends GlobalTask {
                 running = false;
                 break;
             }
+            ElasticsearchMetadata elasticsearchMetadata = null;
             try {
-                Tuple2<Long, Future<ElasticsearchMetadata>> tuple2 = channel.take();
+                Future<ElasticsearchMetadata> future = channel.take();
 
-                logger.info("Consumer message start =====> {}", tuple2._1);
 
-                Future<ElasticsearchMetadata> future = tuple2._2;
+                elasticsearchMetadata = future.get();
+                logger.info("Consumer message start =====> {}", elasticsearchMetadata.getBatchId());
 
-                ElasticsearchMetadata elasticsearchMetadata = future.get();
+                ElasticsearchMetadata finalElasticsearchMetadata = elasticsearchMetadata;
 
-                consumers.forEach(consumer -> consumer.consume(elasticsearchMetadata));
+                consumers.forEach(consumer -> consumer.consume(finalElasticsearchMetadata));
 
                 channel.ack(elasticsearchMetadata.getBatchId());
 
-                logger.info("Consumer message ack =====> {}", tuple2._1);
+                logger.info("Consumer message ack =====> {}", elasticsearchMetadata.getBatchId());
 
             } catch (Exception e) {
 
@@ -86,6 +87,11 @@ public class ConsumerTask extends GlobalTask {
                     running = false;
                     break;
                 }
+            } finally {
+                if (elasticsearchMetadata != null) {
+                    elasticsearchMetadata.recycle();
+                }
+
             }
         }
     }

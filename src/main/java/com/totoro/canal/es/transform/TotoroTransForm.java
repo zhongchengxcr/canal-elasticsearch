@@ -3,7 +3,12 @@ package com.totoro.canal.es.transform;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.totoro.canal.es.common.TotoroObjectPool;
 import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
+import com.totoro.canal.es.consum.es.EsColumnHashMap;
+import com.totoro.canal.es.consum.es.EsEntryArrayList;
+import com.totoro.canal.es.consum.es.EsRowDataArrayList;
+import io.netty.util.Recycler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,24 +38,34 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
 
     private EsAdapter esAdapter;
 
-    public TotoroTransForm(Message message, EsAdapter esAdapter) {
-        this.message = message;
-        this.esAdapter = esAdapter;
+    public TotoroTransForm(Recycler.Handle<TransForm> handle) {
+        this.handle = handle;
+    }
+
+    private final Recycler.Handle<TransForm> handle;
+
+
+    @Override
+    public boolean recycle() {
+        esAdapter = null;
+        message = null;
+        handle.recycle(this);
+        return true;
     }
 
     @Override
     public ElasticsearchMetadata call() throws Exception {
-
         return trans(message);
     }
 
     @Override
     public ElasticsearchMetadata trans(Message message) {
         List<CanalEntry.Entry> entries = message.getEntries();
-        ElasticsearchMetadata elasticsearchMetadata = new ElasticsearchMetadata();
+        ElasticsearchMetadata elasticsearchMetadata = TotoroObjectPool.esMetadata();
         elasticsearchMetadata.setBatchId(message.getId());
         if (entries != null && entries.size() > 0) {
-            List<ElasticsearchMetadata.EsEntry> esEntryList = new ArrayList<>(entries.size());
+            EsEntryArrayList esEntryList = TotoroObjectPool.esEntryArrayList();
+
             entries.forEach(entry -> {
                 if (messageFilterChain.filter(entry)) {
                     try {
@@ -69,7 +84,6 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
         return elasticsearchMetadata;
     }
 
-
     private ElasticsearchMetadata.EsEntry getElasticsearchMetadata(CanalEntry.Entry entry) throws InvalidProtocolBufferException {
 
         final String database = entry.getHeader().getSchemaName(); // => index
@@ -77,25 +91,23 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
         final CanalEntry.RowChange change = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
         final List<CanalEntry.RowData> rowDataList = change.getRowDatasList();
 
-
         CanalEntry.EventType eventType = entry.getHeader().getEventType();
         final int esEventType = esAdapter.getEsEventType(eventType);
 
 
-        List<ElasticsearchMetadata.EsRowData> esRowDataList = rowDataList.stream().map(rowData -> {
+        EsRowDataArrayList esRowDataList = TotoroObjectPool.esRowDataArrayList();
 
+        for(CanalEntry.RowData rowData:rowDataList){
             List<CanalEntry.Column> columnList = esAdapter.getColumnList(esEventType, rowData);
-            ElasticsearchMetadata.EsRowData esRowData = new ElasticsearchMetadata.EsRowData();
-            Map<String, Object> columnMap = new HashMap<>(columnList.size());
+            ElasticsearchMetadata.EsRowData esRowData = TotoroObjectPool.esRowData();
+            EsColumnHashMap columnMap = TotoroObjectPool.esColumnHashMap();
             columnList.forEach(column -> columnMap.put(column.getName(), column.getValue()));
             esRowData.setRowData(columnMap);
             esRowData.setIdColumn(esAdapter.getEsIdColumn(database, table));//获取es对应的id Column
+            esRowDataList.add(esRowData);
+        }
 
-            return esRowData;
-
-        }).collect(Collectors.toList());
-
-        ElasticsearchMetadata.EsEntry esEntry = new ElasticsearchMetadata.EsEntry();
+        ElasticsearchMetadata.EsEntry esEntry = TotoroObjectPool.esEntry();
 
         esEntry.setIndex(database)
                 .setType(table)
@@ -106,4 +118,13 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
     }
 
 
+    public TotoroTransForm setMessage(Message message) {
+        this.message = message;
+        return this;
+    }
+
+    public TotoroTransForm setEsAdapter(EsAdapter esAdapter) {
+        this.esAdapter = esAdapter;
+        return this;
+    }
 }

@@ -5,6 +5,7 @@ import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
 import com.totoro.canal.es.consum.es.ElasticsearchService;
 import com.totoro.canal.es.consum.es.EsConf;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.recycler.Recycler;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
@@ -83,6 +84,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
             String id = (String) esRowData.getRowData().get(idColumn);
             transportClient.prepareDelete(index, type, id).get();
             logger.info("Delete into elasticsearch  ====> {} ", index + "." + type + "." + id);
+
         });
 
     }
