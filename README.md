@@ -154,14 +154,7 @@ cd ../bin
 
 存在的问题
 ======================
-* 内存抖动与GC时间过高，20万条insert数据，利用 jconsole 观察 ， canal 的内存基本稳定在500m以内
-totoro的内存一直在 1G 上下浮动， canal的总垃圾回收时间在 0.14秒左右 ，totorp的垃圾回收总时间在 1.73秒(可能是我创建的对象过多)，
-(正在你努力优化，欢迎各为朋友赐教)，以下 图1 为totoro，图2 为canal.
-
-![](http://upload-images.jianshu.io/upload_images/4798589-3e512380b9d15f35.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-
-![](http://upload-images.jianshu.io/upload_images/4798589-3511591fea0464f4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) 
+* 内存抖动与GC时间过高(已解决,使用对象池化)
 
 * Elasticsearch 客户端 transport 的 cpu与内存消耗比较多，经测试 发现 transport 启动了 20+ 线程
 
