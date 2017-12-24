@@ -7,9 +7,7 @@ import com.totoro.canal.es.channel.TotoroChannel;
 import com.totoro.canal.es.common.GlobalTask;
 import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.common.TotoroObjectPool;
-import com.totoro.canal.es.common.Tuple2;
 import com.totoro.canal.es.consum.es.ElasticsearchMetadata;
-import io.netty.util.Recycler;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -66,8 +64,6 @@ public class TransFormTask extends GlobalTask {
                 Message message = channel.takeMessage();
                 logger.info("Transform message =====> {}", message.getId());
                 TotoroTransForm transForm = getTotoroTransForm(message);
-
-
                 Future<ElasticsearchMetadata> future = executorService.submit(transForm);
                 channel.putFuture(future);
             } catch (InterruptedException e) {

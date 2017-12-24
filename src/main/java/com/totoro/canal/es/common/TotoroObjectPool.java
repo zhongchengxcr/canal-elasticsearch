@@ -8,9 +8,6 @@ import com.totoro.canal.es.transform.TotoroTransForm;
 import com.totoro.canal.es.transform.TransForm;
 import io.netty.util.Recycler;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * 说明 . <br>
  * <p>
@@ -25,7 +22,6 @@ import java.util.Map;
  */
 public class TotoroObjectPool {
 
-
     public static ElasticsearchMetadata esMetadata() {
         return ELASTICSEARCH_METADATA_RECYCLER.get();
     }
@@ -38,10 +34,141 @@ public class TotoroObjectPool {
         return ELASTICSEARCH_ROWDATA_RECYCLER.get();
     }
 
+    static {
+        System.setProperty("io.netty.recycler.ratio", "1");
+    }
+
+
+    public static void main(String[] args) {
+
+
+        System.out.printf(System.getProperty("io.netty.recycler.ratio"));
+
+        ElasticsearchMetadata.EsRowData esRowData = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData1 = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData6 = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData5 = TotoroObjectPool.esRowData();
+
+
+        System.out.println(esRowData);
+        System.out.println(esRowData1);
+        System.out.println(esRowData6);
+        System.out.println(esRowData5);
+
+        esRowData.recycle();
+        esRowData1.recycle();
+        esRowData6.recycle();
+        esRowData5.recycle();
+
+        ElasticsearchMetadata.EsRowData esRowData7 = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData8 = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData9 = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData0 = TotoroObjectPool.esRowData();
+
+        ElasticsearchMetadata.EsRowData esRowData12 = TotoroObjectPool.esRowData();
+        ElasticsearchMetadata.EsRowData esRowData121 = TotoroObjectPool.esRowData();
+
+
+        System.out.println(esRowData7);
+        System.out.println(esRowData8);
+        esRowData7.recycle();
+        esRowData8.recycle();
+
+
+        System.out.println(esRowData9);
+        System.out.println(esRowData0);
+        esRowData9.recycle();
+        esRowData0.recycle();
+
+
+//        new Thread(()->{
+//
+//            ElasticsearchMetadata.EsRowData esRowData3 =  TotoroObjectPool.esRowData();
+//            ElasticsearchMetadata.EsRowData esRowData4 =  TotoroObjectPool.esRowData();
+//            System.out.println(esRowData3);
+//            System.out.println(esRowData4);
+//
+//            esRowData3.recycle();
+//            esRowData4.recycle();
+//
+//            try {
+//                Thread.sleep(1000L);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }).start();
+//
+//        new Thread(()->{
+//
+//            ElasticsearchMetadata.EsRowData esRowData3 =  TotoroObjectPool.esRowData();
+//            ElasticsearchMetadata.EsRowData esRowData4 =  TotoroObjectPool.esRowData();
+//            System.out.println(esRowData3);
+//            System.out.println(esRowData4);
+//
+//            esRowData3.recycle();
+//            esRowData4.recycle();
+//
+//            try {
+//                Thread.sleep(1000L);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }).start();
+//        new Thread(()->{
+//
+//            ElasticsearchMetadata.EsRowData esRowData3 =  TotoroObjectPool.esRowData();
+//            ElasticsearchMetadata.EsRowData esRowData4 =  TotoroObjectPool.esRowData();
+//            System.out.println(esRowData3);
+//            System.out.println(esRowData4);
+//            esRowData3.recycle();
+//            esRowData4.recycle();
+//
+//            try {
+//                Thread.sleep(1000L);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }).start();
+//        new Thread(()->{
+//
+//            ElasticsearchMetadata.EsRowData esRowData3 =  TotoroObjectPool.esRowData();
+//            ElasticsearchMetadata.EsRowData esRowData4 =  TotoroObjectPool.esRowData();
+//            System.out.println(esRowData3);
+//            System.out.println(esRowData4);
+//            esRowData3.recycle();
+//            esRowData4.recycle();
+//
+//            try {
+//                Thread.sleep(1000L);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }).start();
+//        new Thread(()->{
+//
+//            ElasticsearchMetadata.EsRowData esRowData3 =  TotoroObjectPool.esRowData();
+//            ElasticsearchMetadata.EsRowData esRowData4 =  TotoroObjectPool.esRowData();
+//            System.out.println(esRowData3);
+//            System.out.println(esRowData4);
+//            esRowData3.recycle();
+//            esRowData4.recycle();
+//
+//            try {
+//                Thread.sleep(1000L);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }).start();
+
+    }
+
     public static EsColumnHashMap esColumnHashMap() {
         return ELASTICSEARCH_COLUMNMAP_RECYCLER.get();
     }
-
 
     public static EsEntryArrayList esEntryArrayList() {
         return ELASTICSEARCH_ENTRY_LIST__RECYCLER.get();
@@ -50,7 +177,6 @@ public class TotoroObjectPool {
     public static EsRowDataArrayList esRowDataArrayList() {
         return ELASTICSEARCH_ROW_DATA__RECYCLER.get();
     }
-
 
     public static TransForm transForm() {
         return TRANS_FORM_RECYCLER.get();

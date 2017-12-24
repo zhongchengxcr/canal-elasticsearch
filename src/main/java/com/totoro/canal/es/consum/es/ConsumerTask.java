@@ -3,11 +3,9 @@ package com.totoro.canal.es.consum.es;
 import com.alibaba.otter.canal.common.utils.BooleanMutex;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.totoro.canal.es.channel.TotoroChannel;
-import com.totoro.canal.es.common.RollBackMonitorFactory;
 import com.totoro.canal.es.common.GlobalTask;
-import com.totoro.canal.es.common.Tuple2;
+import com.totoro.canal.es.common.RollBackMonitorFactory;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 

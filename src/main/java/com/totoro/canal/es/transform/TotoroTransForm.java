@@ -63,6 +63,7 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
         List<CanalEntry.Entry> entries = message.getEntries();
         ElasticsearchMetadata elasticsearchMetadata = TotoroObjectPool.esMetadata();
         elasticsearchMetadata.setBatchId(message.getId());
+        elasticsearchMetadata.setTransForm(this);
         if (entries != null && entries.size() > 0) {
             EsEntryArrayList esEntryList = TotoroObjectPool.esEntryArrayList();
 
@@ -80,7 +81,10 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
         }
 
         logger.info("Trans form complete message id =====> {}", message.getId());
-        logger.info("Trans form complete elasticsearch metadata  =====> {}", elasticsearchMetadata.toString());
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Trans form complete elasticsearch metadata  =====> {}", elasticsearchMetadata.toString());
+        }
         return elasticsearchMetadata;
     }
 
@@ -97,7 +101,7 @@ public class TotoroTransForm implements TransForm<Message, ElasticsearchMetadata
 
         EsRowDataArrayList esRowDataList = TotoroObjectPool.esRowDataArrayList();
 
-        for(CanalEntry.RowData rowData:rowDataList){
+        for (CanalEntry.RowData rowData : rowDataList) {
             List<CanalEntry.Column> columnList = esAdapter.getColumnList(esEventType, rowData);
             ElasticsearchMetadata.EsRowData esRowData = TotoroObjectPool.esRowData();
             EsColumnHashMap columnMap = TotoroObjectPool.esColumnHashMap();

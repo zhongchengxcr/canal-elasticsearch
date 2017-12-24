@@ -2,6 +2,7 @@ package com.totoro.canal.es.consum.es;
 
 import com.google.common.base.Joiner;
 import com.totoro.canal.es.common.RecycleAble;
+import com.totoro.canal.es.transform.TransForm;
 import io.netty.util.Recycler;
 
 import java.util.Map;
@@ -32,6 +33,8 @@ public class ElasticsearchMetadata implements RecycleAble {
 
     private final Recycler.Handle<ElasticsearchMetadata> handle;
 
+    private TransForm transForm;
+
     public ElasticsearchMetadata(Recycler.Handle<ElasticsearchMetadata> handle) {
         this.handle = handle;
     }
@@ -42,6 +45,11 @@ public class ElasticsearchMetadata implements RecycleAble {
         if (esEntries != null) {
             esEntries.recycle();
         }
+
+        if(transForm!=null){
+            transForm.recycle();
+        }
+
         handle.recycle(this);
         return true;
     }
@@ -153,7 +161,10 @@ public class ElasticsearchMetadata implements RecycleAble {
         @Override
         public boolean recycle() {
             idColumn = null;
-            rowData.recycle();
+
+            if(rowData!=null){
+                rowData.recycle();
+            }
             handle.recycle(this);
             return true;
         }
@@ -216,5 +227,14 @@ public class ElasticsearchMetadata implements RecycleAble {
         sb.append(", esEntries=").append(Joiner.on(",").join(esEntries));
         sb.append('}');
         return sb.toString();
+    }
+
+    public ElasticsearchMetadata setTransForm(TransForm transForm) {
+        this.transForm = transForm;
+        return this;
+    }
+
+    public TransForm getTransForm() {
+        return transForm;
     }
 }
